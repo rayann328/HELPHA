@@ -5,6 +5,7 @@ import '../screens/auth/login_screen.dart';
 import 'personal_info_screen.dart';
 import 'notifications_screen.dart';
 import 'security_screen.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -105,9 +106,10 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.settings_outlined,
             title: 'Settings',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Settings will be available soon'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
                 ),
               );
             },

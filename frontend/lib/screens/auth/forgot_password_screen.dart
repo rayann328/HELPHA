@@ -15,6 +15,8 @@ class _ForgotPasswordScreenState
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
 
+  bool _emailSent = false;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -26,13 +28,9 @@ class _ForgotPasswordScreenState
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Password reset will be connected to the backend soon.',
-        ),
-      ),
-    );
+    setState(() {
+      _emailSent = true;
+    });
   }
 
   @override
@@ -51,6 +49,7 @@ class _ForgotPasswordScreenState
               children: [
                 const SizedBox(height: 30),
 
+                // Icon
                 Center(
                   child: Container(
                     width: 90,
@@ -59,11 +58,11 @@ class _ForgotPasswordScreenState
                       color: AppColors.primary.withValues(
                         alpha: 0.10,
                       ),
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(25),
                     ),
                     child: const Icon(
                       Icons.lock_reset_rounded,
-                      size: 48,
+                      size: 50,
                       color: AppColors.primary,
                     ),
                   ),
@@ -73,8 +72,7 @@ class _ForgotPasswordScreenState
 
                 const Center(
                   child: Text(
-                    'Reset Your Password',
-                    textAlign: TextAlign.center,
+                    'Forgot Password?',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -87,12 +85,11 @@ class _ForgotPasswordScreenState
 
                 const Center(
                   child: Text(
-                    'Enter your email and we will send you a '
-                    'link to reset your password.',
+                    'Enter your email address and we will send '
+                    'you a password reset link.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      height: 1.5,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -113,12 +110,16 @@ class _ForgotPasswordScreenState
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  enabled: !_emailSent,
                   decoration: const InputDecoration(
                     hintText: 'Enter your email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    prefixIcon: Icon(
+                      Icons.email_outlined,
+                    ),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
+                    if (value == null ||
+                        value.trim().isEmpty) {
                       return 'Please enter your email';
                     }
 
@@ -130,15 +131,57 @@ class _ForgotPasswordScreenState
                   },
                 ),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-                ElevatedButton(
-                  onPressed: _sendResetLink,
-                  child: const Text(
-                    'Send Reset Link',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                if (_emailSent)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(
+                        alpha: 0.10,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.green,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'A password reset link has been '
+                            'sent to your email address.',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed:
+                        _emailSent ? null : _sendResetLink,
+                    child: Text(
+                      _emailSent
+                          ? 'Reset Link Sent'
+                          : 'Send Reset Link',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -150,7 +193,9 @@ class _ForgotPasswordScreenState
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text('Back to Login'),
+                    child: const Text(
+                      'Back to Login',
+                    ),
                   ),
                 ),
               ],

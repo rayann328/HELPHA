@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_settings.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -8,183 +10,191 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool darkMode = false;
-  bool medicationReminders = true;
+  bool get darkMode =>
+      AppSettings.themeMode.value == ThemeMode.dark;
 
-  String selectedLanguage = 'English';
+  bool get medicationReminders =>
+      AppSettings.medicationReminders;
+
+  String get selectedLanguage =>
+      AppSettings.locale.value.languageCode == 'ar'
+          ? 'Arabic'
+          : 'English';
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Appearance
-          const Text(
-            'Appearance',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppSettings.themeMode,
+      builder: (context, themeMode, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Settings'),
           ),
-
-          const SizedBox(height: 10),
-
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.dark_mode_outlined),
-              title: const Text('Dark Mode'),
-              subtitle: const Text(
-                'Change the appearance of the application',
+          body: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              const Text(
+                'Appearance',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              value: darkMode,
-              onChanged: (value) {
-                setState(() {
-                  darkMode = value;
-                });
-              },
-            ),
-          ),
 
-          const SizedBox(height: 25),
+              const SizedBox(height: 10),
 
-          // Notifications
-          const Text(
-            'Notifications',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(
-                Icons.medication_outlined,
+              Card(
+                child: SwitchListTile(
+                  secondary: const Icon(
+                    Icons.dark_mode_outlined,
+                  ),
+                  title: const Text('Dark Mode'),
+                  subtitle: const Text(
+                    'Change the appearance of the application',
+                  ),
+                  value: darkMode,
+                  onChanged: (value) {
+                    AppSettings.setDarkMode(value);
+                  },
+                ),
               ),
-              title: const Text('Medication Reminders'),
-              subtitle: const Text(
-                'Receive reminders for your medications',
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Notifications',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              value: medicationReminders,
-              onChanged: (value) {
-                setState(() {
-                  medicationReminders = value;
-                });
-              },
-            ),
-          ),
 
-          const SizedBox(height: 25),
+              const SizedBox(height: 10),
 
-          // Language
-          const Text(
-            'Language',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Card(
-            child: ListTile(
-              leading: const Icon(
-                Icons.language_outlined,
+              Card(
+                child: SwitchListTile(
+                  secondary: const Icon(
+                    Icons.medication_outlined,
+                  ),
+                  title: const Text(
+                    'Medication Reminders',
+                  ),
+                  subtitle: const Text(
+                    'Receive reminders for your medications',
+                  ),
+                  value: medicationReminders,
+                  onChanged: (value) {
+                    setState(() {
+                      AppSettings.medicationReminders = value;
+                    });
+                  },
+                ),
               ),
-              title: const Text('App Language'),
-              subtitle: Text(selectedLanguage),
-              trailing: const Icon(
-                Icons.chevron_right,
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Language',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              onTap: () {
-                _showLanguageDialog(context);
-              },
-            ),
-          ),
 
-          const SizedBox(height: 25),
+              const SizedBox(height: 10),
 
-          // About
-          const Text(
-            'About',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Card(
-            child: ListTile(
-              leading: const Icon(
-                Icons.info_outline,
+              Card(
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.language_outlined,
+                  ),
+                  title: const Text('App Language'),
+                  subtitle: Text(selectedLanguage),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                  ),
+                  onTap: () {
+                    _showLanguageDialog(context);
+                  },
+                ),
               ),
-              title: const Text('About HELPHA'),
-              trailing: const Icon(
-                Icons.chevron_right,
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'About',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              onTap: () {
-                _showAboutDialog(context);
-              },
-            ),
+
+              const SizedBox(height: 10),
+
+              Card(
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.info_outline,
+                  ),
+                  title: const Text('About HELPHA'),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                  ),
+                  onTap: () {
+                    _showAboutDialog(context);
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
-void _showLanguageDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: const Text('Select Language'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(
-                selectedLanguage == 'English'
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-              ),
-              title: const Text('English'),
-              onTap: () {
-                setState(() {
-                  selectedLanguage = 'English';
-                });
 
-                Navigator.pop(dialogContext);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                selectedLanguage == 'Arabic'
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-              ),
-              title: const Text('Arabic'),
-              onTap: () {
-                setState(() {
-                  selectedLanguage = 'Arabic';
-                });
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Select Language'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: const Text('English'),
+                value: 'English',
+                groupValue: selectedLanguage,
+                onChanged: (value) {
+                  if (value == null) return;
 
-                Navigator.pop(dialogContext);
-              },
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
+                  AppSettings.setLanguage(value);
+
+                  Navigator.pop(dialogContext);
+                  setState(() {});
+                },
+              ),
+
+              RadioListTile<String>(
+                title: const Text('Arabic'),
+                value: 'Arabic',
+                groupValue: selectedLanguage,
+                onChanged: (value) {
+                  if (value == null) return;
+
+                  AppSettings.setLanguage(value);
+
+                  Navigator.pop(dialogContext);
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
