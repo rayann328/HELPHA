@@ -30,9 +30,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           appBar: AppBar(
             title: const Text('Settings'),
           ),
+
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+
+              // ==================================================
+              // APPEARANCE
+              // ==================================================
+
               const Text(
                 'Appearance',
                 style: TextStyle(
@@ -48,11 +54,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   secondary: const Icon(
                     Icons.dark_mode_outlined,
                   ),
-                  title: const Text('Dark Mode'),
+
+                  title: const Text(
+                    'Dark Mode',
+                  ),
+
                   subtitle: const Text(
                     'Change the appearance of the application',
                   ),
+
                   value: darkMode,
+
                   onChanged: (value) {
                     AppSettings.setDarkMode(value);
                   },
@@ -60,6 +72,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
 
               const SizedBox(height: 25),
+
+              // ==================================================
+              // NOTIFICATIONS
+              // ==================================================
 
               const Text(
                 'Notifications',
@@ -76,13 +92,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   secondary: const Icon(
                     Icons.medication_outlined,
                   ),
+
                   title: const Text(
                     'Medication Reminders',
                   ),
+
                   subtitle: const Text(
                     'Receive reminders for your medications',
                   ),
+
                   value: medicationReminders,
+
                   onChanged: (value) {
                     setState(() {
                       AppSettings.medicationReminders = value;
@@ -92,6 +112,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
 
               const SizedBox(height: 25),
+
+              // ==================================================
+              // LANGUAGE
+              // ==================================================
 
               const Text(
                 'Language',
@@ -108,11 +132,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(
                     Icons.language_outlined,
                   ),
-                  title: const Text('App Language'),
-                  subtitle: Text(selectedLanguage),
+
+                  title: const Text(
+                    'App Language',
+                  ),
+
+                  subtitle: Text(
+                    selectedLanguage,
+                  ),
+
                   trailing: const Icon(
                     Icons.chevron_right,
                   ),
+
                   onTap: () {
                     _showLanguageDialog(context);
                   },
@@ -120,6 +152,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
 
               const SizedBox(height: 25),
+
+              // ==================================================
+              // ABOUT
+              // ==================================================
 
               const Text(
                 'About',
@@ -136,10 +172,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(
                     Icons.info_outline,
                   ),
-                  title: const Text('About HELPHA'),
+
+                  title: const Text(
+                    'About HELPHA',
+                  ),
+
                   trailing: const Icon(
                     Icons.chevron_right,
                   ),
+
                   onTap: () {
                     _showAboutDialog(context);
                   },
@@ -152,39 +193,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ============================================================
+  // LANGUAGE DIALOG
+  // ============================================================
+
   void _showLanguageDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Select Language'),
+          title: const Text(
+            'Select Language',
+          ),
+
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RadioListTile<String>(
-                title: const Text('English'),
-                value: 'English',
-                groupValue: selectedLanguage,
-                onChanged: (value) {
-                  if (value == null) return;
 
-                  AppSettings.setLanguage(value);
+              // --------------------------------------------------
+              // ENGLISH
+              // --------------------------------------------------
+
+              ListTile(
+                leading: Icon(
+                  selectedLanguage == 'English'
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary,
+                ),
+
+                title: const Text(
+                  'English',
+                ),
+
+                onTap: () {
+                  AppSettings.setLanguage('English');
 
                   Navigator.pop(dialogContext);
+
                   setState(() {});
                 },
               ),
 
-              RadioListTile<String>(
-                title: const Text('Arabic'),
-                value: 'Arabic',
-                groupValue: selectedLanguage,
-                onChanged: (value) {
-                  if (value == null) return;
+              // --------------------------------------------------
+              // ARABIC
+              // --------------------------------------------------
 
-                  AppSettings.setLanguage(value);
+              ListTile(
+                leading: Icon(
+                  selectedLanguage == 'Arabic'
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary,
+                ),
+
+                title: const Text(
+                  'Arabic',
+                ),
+
+                onTap: () {
+                  AppSettings.setLanguage('Arabic');
 
                   Navigator.pop(dialogContext);
+
                   setState(() {});
                 },
               ),
@@ -195,14 +272,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ============================================================
+  // ABOUT DIALOG
+  // ============================================================
+
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
+
       applicationName: 'HELPHA',
+
       applicationVersion: '1.0.0',
+
       applicationLegalese: '© 2026 HELPHA',
+
       children: const [
         SizedBox(height: 15),
+
         Text(
           'HELPHA is a healthcare assistance application '
           'designed to help users manage medications, '

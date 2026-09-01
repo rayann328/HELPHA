@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_colors.dart';
+import '../core/constants/app_colors.dart';
 import '../screens/auth/login_screen.dart';
+
 import 'personal_info_screen.dart';
 import 'notifications_screen.dart';
 import 'security_screen.dart';
@@ -12,54 +13,74 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
       ),
+
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+
           const SizedBox(height: 20),
 
-          // Profile picture
-          const CircleAvatar(
-            radius: 50,
-            backgroundColor: AppColors.primary,
-            child: Icon(
-              Icons.person,
-              size: 55,
-              color: Colors.white,
+          // =====================================================
+          // PROFILE IMAGE
+          // =====================================================
+
+          Center(
+            child: CircleAvatar(
+              radius: 50,
+              backgroundColor: AppColors.primary,
+              child: const Icon(
+                Icons.person,
+                size: 55,
+                color: Colors.white,
+              ),
             ),
           ),
 
           const SizedBox(height: 16),
 
-          // User name
-          const Center(
+          // =====================================================
+          // USER NAME
+          // =====================================================
+
+          Center(
             child: Text(
               'Your Name',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
 
           const SizedBox(height: 4),
 
-          // User email
-          const Center(
+          // =====================================================
+          // USER EMAIL
+          // =====================================================
+
+          Center(
             child: Text(
               'user@example.com',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ),
 
           const SizedBox(height: 30),
 
-          // Personal Information
+          // =====================================================
+          // PERSONAL INFORMATION
+          // =====================================================
+
           _SettingTile(
             icon: Icons.person_outline,
             title: 'Personal Information',
@@ -73,7 +94,10 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
 
-          // Notifications
+          // =====================================================
+          // NOTIFICATIONS
+          // =====================================================
+
           _SettingTile(
             icon: Icons.notifications_outlined,
             title: 'Notifications',
@@ -87,7 +111,10 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
 
-          // Security
+          // =====================================================
+          // SECURITY
+          // =====================================================
+
           _SettingTile(
             icon: Icons.lock_outline,
             title: 'Security',
@@ -101,7 +128,10 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
 
-          // Settings
+          // =====================================================
+          // SETTINGS
+          // =====================================================
+
           _SettingTile(
             icon: Icons.settings_outlined,
             title: 'Settings',
@@ -117,7 +147,10 @@ class ProfileScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Logout
+          // =====================================================
+          // LOGOUT
+          // =====================================================
+
           OutlinedButton.icon(
             onPressed: () {
               Navigator.of(context).pushAndRemoveUntil(
@@ -127,10 +160,12 @@ class ProfileScreen extends StatelessWidget {
                 (route) => false,
               );
             },
+
             icon: const Icon(
               Icons.logout,
               color: AppColors.error,
             ),
+
             label: const Text(
               'Logout',
               style: TextStyle(
@@ -143,6 +178,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
+
+// ===============================================================
+// SETTING TILE
+// ===============================================================
 
 class _SettingTile extends StatelessWidget {
   final IconData icon;
@@ -157,19 +196,45 @@ class _SettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: 0,
+
       margin: const EdgeInsets.only(bottom: 10),
-      color: Colors.white,
+
+      // IMPORTANT:
+      // Do NOT use Colors.white here.
+      // The Card will automatically use the current theme.
+      color: colorScheme.surface,
+
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.5),
+        ),
+      ),
+
       child: ListTile(
         leading: Icon(
           icon,
-          color: AppColors.primary,
+          color: colorScheme.primary,
         ),
-        title: Text(title),
-        trailing: const Icon(
+
+        title: Text(
+          title,
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+
+        trailing: Icon(
           Icons.chevron_right,
+          color: colorScheme.onSurfaceVariant,
         ),
+
         onTap: onTap,
       ),
     );

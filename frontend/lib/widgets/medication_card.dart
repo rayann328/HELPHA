@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/constants/app_colors.dart';
 import '../models/medication.dart';
 
 class MedicationCard extends StatelessWidget {
@@ -15,14 +14,16 @@ class MedicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(
-          color: AppColors.border,
+        side: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.35),
         ),
       ),
       child: InkWell(
@@ -36,12 +37,12 @@ class MedicationCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.10),
+                  color: colorScheme.primary.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.medication_rounded,
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                   size: 28,
                 ),
               ),
@@ -54,24 +55,28 @@ class MedicationCard extends StatelessWidget {
                   children: [
                     Text(
                       medication.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: colorScheme.onSurface,
                       ),
                     ),
+
                     const SizedBox(height: 4),
+
                     Text(
                       '${medication.dosage} • ${medication.type}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
+
                     const SizedBox(height: 4),
+
                     Text(
                       medication.times.join(' • '),
-                      style: const TextStyle(
-                        color: AppColors.primary,
+                      style: TextStyle(
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -79,9 +84,9 @@ class MedicationCard extends StatelessWidget {
                 ),
               ),
 
-              const Icon(
+              Icon(
                 Icons.chevron_right,
-                color: AppColors.textSecondary,
+                color: colorScheme.onSurfaceVariant,
               ),
             ],
           ),

@@ -19,7 +19,7 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'HELPHA',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
@@ -43,7 +43,7 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+             Text(
               'Good Morning 👋',
               style: TextStyle(
                 fontSize: 16,
@@ -53,7 +53,7 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 4),
 
-            const Text(
+            Text(
               'Stay on track with your medications',
               style: TextStyle(
                 fontSize: 24,
@@ -86,7 +86,7 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 28),
 
-            const Text(
+            Text(
               "Today's Medications",
               style: TextStyle(
                 fontSize: 20,
@@ -112,7 +112,7 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            const Text(
+            Text(
               'Quick Actions',
               style: TextStyle(
                 fontSize: 20,
@@ -211,13 +211,15 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.border,
+          color: colorScheme.outline.withValues(alpha: 0.35),
         ),
       ),
       child: Column(
@@ -225,20 +227,24 @@ class _StatCard extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: AppColors.primary,
+            color: colorScheme.primary,
           ),
+
           const SizedBox(height: 12),
+
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
             ),
           ),
+
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -260,6 +266,8 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -269,10 +277,10 @@ class _ActionButton extends StatelessWidget {
           horizontal: 12,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.border,
+            color: colorScheme.outline.withValues(alpha: 0.35),
           ),
         ),
         child: Column(
@@ -280,13 +288,16 @@ class _ActionButton extends StatelessWidget {
             Icon(
               icon,
               size: 30,
-              color: AppColors.primary,
+              color: colorScheme.primary,
             ),
+
             const SizedBox(height: 8),
+
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
               ),
             ),
           ],
