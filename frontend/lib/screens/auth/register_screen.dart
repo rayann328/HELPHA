@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,9 +18,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  final AuthService _authService = AuthService();
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,7 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _register() {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -38,15 +42,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please agree to the Terms and Conditions.'),
+          content: Text(
+            'Please agree to the Terms and Conditions.',
+          ),
         ),
       );
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await _authService.register(
+      fullName: _nameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['message']?.toString() ??
+                'Registration successful!',
+          ),
+        ),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.pop(context);
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Registration will be connected to the backend soon.'),
+      SnackBar(
+        content: Text(
+          result['message']?.toString() ??
+              'Registration failed. Please try again.',
+        ),
       ),
     );
   }
@@ -103,6 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextFormField(
                   controller: _nameController,
+                  enabled: !_isLoading,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     hintText: 'Enter your full name',
@@ -131,6 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextFormField(
                   controller: _emailController,
+                  enabled: !_isLoading,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
@@ -164,17 +213,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextFormField(
                   controller: _passwordController,
+                  enabled: !_isLoading,
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     hintText: 'Create a password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                _obscurePassword =
+                                    !_obscurePassword;
+                              });
+                            },
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_outlined
@@ -187,8 +240,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'Please enter a password';
                     }
 
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                    if (value.length < 8) {
+                      return 'Password must be at least 8 characters';
                     }
 
                     return null;
@@ -209,17 +262,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 TextFormField(
                   controller: _confirmPasswordController,
+                  enabled: !_isLoading,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     hintText: 'Confirm your password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword =
-                              !_obscureConfirmPassword;
-                        });
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
+                              });
+                            },
                       icon: Icon(
                         _obscureConfirmPassword
                             ? Icons.visibility_outlined
@@ -247,11 +303,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Checkbox(
                       value: _agreeToTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _agreeToTerms = value ?? false;
-                        });
-                      },
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _agreeToTerms = value ?? false;
+                              });
+                            },
                     ),
                     const Expanded(
                       child: Padding(
@@ -271,24 +329,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
 
                 ElevatedButton(
-                  onPressed: _register,
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  onPressed: _isLoading ? null : _register,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Create Account',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
 
                 const SizedBox(height: 20),
 
                 Center(
                   child: TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Already have an account? Login'),
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            Navigator.pop(context);
+                          },
+                    child: const Text(
+                      'Already have an account? Login',
+                    ),
                   ),
                 ),
               ],

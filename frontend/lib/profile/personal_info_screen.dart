@@ -1,115 +1,192 @@
 import 'package:flutter/material.dart';
 
+import '../services/profile_service.dart';
+
 class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
 
   @override
-  State<PersonalInfoScreen> createState() => _PersonalInfoScreenState();
+  State<PersonalInfoScreen> createState() =>
+      _PersonalInfoScreenState();
 }
 
-class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
-  final _formKey = GlobalKey<FormState>();
+class _PersonalInfoScreenState
+    extends State<PersonalInfoScreen> {
+  final ProfileService _service =
+      ProfileService();
 
-  final TextEditingController _nameController =
-      TextEditingController(text: 'Your Name');
+  final _firstNameController =
+      TextEditingController();
 
-  final TextEditingController _emailController =
-      TextEditingController(text: 'user@example.com');
+  final _lastNameController =
+      TextEditingController();
+
+  final _emailController =
+      TextEditingController();
+
+  final _phoneController =
+      TextEditingController();
+
+  bool _loading = true;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile =
+          await _service.getProfile();
+
+      if (!mounted) return;
+
+      setState(() {
+        _firstNameController.text =
+            profile['firstName']?.toString() ?? '';
+
+        _lastNameController.text =
+            profile['lastName']?.toString() ?? '';
+
+        _emailController.text =
+            profile['email']?.toString() ?? '';
+
+        _phoneController.text =
+            profile['phone']?.toString() ?? '';
+
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
+
+  Future<void> _save() async {
+    setState(() {
+      _saving = true;
+    });
+
+    try {
+      await _service.updateProfile(
+        firstName:
+            _firstNameController.text,
+        lastName:
+            _lastNameController.text,
+        phone: _phoneController.text,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _saving = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Profile updated successfully'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _saving = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
-  }
-
-  void _saveChanges() {
-    if (!_formKey.currentState!.validate()) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Personal information updated successfully'),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Personal Information'),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            const SizedBox(height: 10),
-
-            const Center(
-              child: CircleAvatar(
-                radius: 45,
-                child: Icon(
-                  Icons.person,
-                  size: 50,
-                ),
-              ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          TextField(
+            controller: _firstNameController,
+            decoration: const InputDecoration(
+              labelText: 'First name',
             ),
+          ),
+          const SizedBox(height: 16),
 
-            const SizedBox(height: 30),
-
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Full Name',
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter your name';
-                }
-                return null;
-              },
+          TextField(
+            controller: _lastNameController,
+            decoration: const InputDecoration(
+              labelText: 'Last name',
             ),
+          ),
+          const SizedBox(height: 16),
 
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email_outlined),
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter your email';
-                }
-
-                if (!value.contains('@')) {
-                  return 'Please enter a valid email';
-                }
-
-                return null;
-              },
+          TextField(
+            controller: _emailController,
+            enabled: false,
+            decoration: const InputDecoration(
+              labelText: 'Email',
             ),
+          ),
+          const SizedBox(height: 16),
 
-            const SizedBox(height: 30),
-
-            SizedBox(
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _saveChanges,
-                child: const Text(
-                  'Save Changes',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
+          TextField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: 'Phone',
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 28),
+
+          SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              onPressed:
+                  _saving ? null : _save,
+              child: _saving
+                  ? const CircularProgressIndicator(
+                      strokeWidth: 2,
+                    )
+                  : const Text('Save Changes'),
+            ),
+          ),
+        ],
       ),
     );
   }

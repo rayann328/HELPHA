@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_colors.dart';
-import '../../data/app_data.dart';
-import '../../models/medication.dart';
+import '../core/constants/app_colors.dart';
+import '../models/medication.dart';
+import '../services/medication_service.dart';
+import '../services/reminder_service.dart';
 
 class MedicationDetailsScreen extends StatefulWidget {
   final Medication medication;
@@ -19,15 +20,202 @@ class MedicationDetailsScreen extends StatefulWidget {
 
 class _MedicationDetailsScreenState
     extends State<MedicationDetailsScreen> {
-  void _delete() {
-    AppData.medications.remove(widget.medication);
-    Navigator.pop(context);
+  final MedicationService _medicationService =
+      MedicationService();
+
+  final ReminderService _reminderService =
+      ReminderService();
+
+  bool _loading = false;
+
+  Future<void> _delete() async {
+    final confirmed =
+        await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title:
+              const Text('Delete medication?'),
+          content: const Text(
+            'This will permanently remove this medication.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () =>
+                  Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+    });
+
+    try {
+      await _medicationService.deleteMedication(
+        widget.medication.id,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Medication deleted'),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
   }
 
-  void _markTaken() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Medication marked as taken.'),
+  Future<void> _archive() async {
+    setState(() {
+      _loading = true;
+    });
+
+    try {
+      await _medicationService.archiveMedication(
+        widget.medication.id,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
+
+  Future<void> _markTaken() async {
+    setState(() {
+      _loading = true;
+    });
+
+    try {
+      final reminders =
+          await _reminderService.getToday();
+
+      final medicationReminders =
+          reminders.where((reminder) {
+        final medication =
+            reminder['medication'];
+
+        if (medication is! Map) {
+          return false;
+        }
+
+        return medication['id']?.toString() ==
+            widget.medication.id;
+      }).toList();
+
+      if (medicationReminders.isEmpty) {
+        if (!mounted) return;
+
+        setState(() {
+          _loading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No reminder found for this medication today.',
+            ),
+          ),
+        );
+
+        return;
+      }
+
+      await _reminderService.updateStatus(
+        medicationReminders.first['id'].toString(),
+        'TAKEN',
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Medication marked as taken',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
+
+  Widget _infoRow(
+    String title,
+    String value,
+    IconData icon,
+  ) {
+    if (value.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: AppColors.primary,
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(value),
       ),
     );
   }
@@ -38,178 +226,117 @@ class _MedicationDetailsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Medication Details'),
+        title: Text(medication.name),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: const Text('Delete Medication?'),
-                  content: const Text(
-                    'This medication will be removed from your list.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _delete();
-                      },
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(
-                          color: AppColors.error,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'archive') {
+                _archive();
+              } else if (value == 'delete') {
+                _delete();
+              }
             },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'archive',
+                child: Text('Archive'),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Text('Delete'),
+              ),
+            ],
           ),
         ],
       ),
-
-      body: SingleChildScrollView(
+      body: ListView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.medication_rounded,
-                size: 55,
-                color: AppColors.primary,
-              ),
+        children: [
+          CircleAvatar(
+            radius: 42,
+            backgroundColor:
+                AppColors.primary.withValues(
+              alpha: 0.12,
             ),
+            child: const Icon(
+              Icons.medication,
+              size: 44,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
-
-            Text(
+          Center(
+            child: Text(
               medication.name,
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              '${medication.dosage} • ${medication.type}',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 16,
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            _InfoTile(
-              icon: Icons.repeat,
-              title: 'Frequency',
-              value: medication.frequency,
-            ),
-
-            _InfoTile(
-              icon: Icons.access_time,
-              title: 'Time',
-              value: medication.times.join(', '),
-            ),
-
-            _InfoTile(
-              icon: Icons.calendar_today,
-              title: 'Start Date',
-              value:
-                  '${medication.startDate.day}/${medication.startDate.month}/${medication.startDate.year}',
-            ),
-
-            _InfoTile(
-              icon: Icons.notes,
-              title: 'Notes',
-              value: medication.notes.isEmpty
-                  ? 'No notes'
-                  : medication.notes,
-            ),
-
-            const SizedBox(height: 25),
-
-            ElevatedButton(
-              onPressed: _markTaken,
-              child: const Text(
-                'Mark as Taken',
-                style: TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-
-  const _InfoTile({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.border,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: AppColors.primary,
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+
+          const SizedBox(height: 24),
+
+          _infoRow(
+            'Dosage',
+            medication.dosage ?? '',
+            Icons.medication,
+          ),
+
+          _infoRow(
+            'Type',
+            medication.type ?? '',
+            Icons.category,
+          ),
+
+          _infoRow(
+            'Strength',
+            medication.strength ?? '',
+            Icons.science,
+          ),
+
+          _infoRow(
+            'Generic name',
+            medication.genericName ?? '',
+            Icons.info_outline,
+          ),
+
+          _infoRow(
+            'Brand name',
+            medication.brandName ?? '',
+            Icons.business,
+          ),
+
+          _infoRow(
+            'Notes',
+            medication.notes ?? '',
+            Icons.notes,
+          ),
+
+          const SizedBox(height: 24),
+
+          SizedBox(
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed:
+                  _loading ? null : _markTaken,
+              icon: const Icon(
+                Icons.check_circle,
+              ),
+              label: const Text(
+                'Mark Today as Taken',
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          OutlinedButton(
+            onPressed:
+                _loading ? null : _delete,
+            child: const Text(
+              'Delete Medication',
             ),
           ),
         ],

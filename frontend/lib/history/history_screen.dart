@@ -1,18 +1,64 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_colors.dart';
-import '../../data/app_data.dart';
+import '../core/constants/app_colors.dart';
+import '../services/history_service.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
+  @override
+  State<HistoryScreen> createState() =>
+      _HistoryScreenState();
+}
+
+class _HistoryScreenState
+    extends State<HistoryScreen> {
+  final HistoryService _service =
+      HistoryService();
+
+  List<Map<String, dynamic>> _history = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final data =
+          await _service.getHistory();
+
+      if (!mounted) return;
+
+      setState(() {
+        _history = data.reversed.toList();
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
   Color _statusColor(String status) {
-    switch (status) {
-      case 'Taken':
+    switch (status.toUpperCase()) {
+      case 'TAKEN':
         return AppColors.success;
-      case 'Missed':
+      case 'MISSED':
         return AppColors.error;
-      case 'Delayed':
+      case 'SKIPPED':
         return AppColors.warning;
       default:
         return AppColors.textSecondary;
@@ -23,81 +69,112 @@ class HistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Medication History'),
+        title: const Text('History'),
+        actions: [
+          IconButton(
+            onPressed: _loadHistory,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: AppData.history.length,
-        itemBuilder: (context, index) {
-          final item = AppData.history[index];
+      body: _buildBody(),
+    );
+  }
 
-          final color = _statusColor(
-            item['status'] as String,
-          );
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.border,
-              ),
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
             ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: color.withValues(alpha: 0.10),
-                  child: Icon(
-                    item['status'] == 'Taken'
-                        ? Icons.check
-                        : Icons.close,
-                    color: color,
-                  ),
-                ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadHistory,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
 
-                const SizedBox(width: 14),
+    if (_history.isEmpty) {
+      return const Center(
+        child: Text(
+          'No medication history yet.',
+        ),
+      );
+    }
 
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item['name'] as String,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${item['dosage']} • ${item['time']}',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['date'] as String,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    return RefreshIndicator(
+      onRefresh: _loadHistory,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _history.length,
+        itemBuilder: (context, index) {
+          final item = _history[index];
 
-                Text(
-                  item['status'] as String,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
+          final status =
+              item['status']?.toString() ??
+                  'PENDING';
+
+          final medication =
+              item['medication'];
+
+          String medicationName =
+              'Medication';
+
+          if (medication is Map) {
+            medicationName =
+                medication['name']?.toString() ??
+                    'Medication';
+          }
+
+          final scheduledAt =
+              item['scheduledAt']
+                      ?.toString() ??
+                  '';
+
+          return Card(
+            margin: const EdgeInsets.only(
+              bottom: 12,
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor:
+                    _statusColor(status)
+                        .withValues(alpha: 0.12),
+                child: Icon(
+                  status == 'TAKEN'
+                      ? Icons.check
+                      : status == 'MISSED'
+                          ? Icons.close
+                          : Icons.history,
+                  color: _statusColor(status),
                 ),
-              ],
+              ),
+              title: Text(
+                medicationName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                scheduledAt.isEmpty
+                    ? status
+                    : '$scheduledAt\n$status',
+              ),
+              isThreeLine:
+                  scheduledAt.isNotEmpty,
             ),
           );
         },

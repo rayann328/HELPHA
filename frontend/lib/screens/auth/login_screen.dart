@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../dashboard/dashboard_screen.dart';
+
 import '../../core/constants/app_colors.dart';
-import 'register_screen.dart';
+import '../../services/auth_service.dart';
+import '../dashboard/dashboard_screen.dart';
 import 'forgot_password_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,8 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  final AuthService _authService = AuthService();
+
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,18 +32,49 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-  if (!_formKey.currentState!.validate()) {
-    return;
-  }
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(
-      builder: (_) => const DashboardScreen(),
-    ),
-    (route) => false,
-  );
-}
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await _authService.login(
+      email: _emailController.text,
+      password: _passwordController.text,
+      rememberMe: _rememberMe,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success'] == true) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const DashboardScreen(),
+        ),
+        (route) => false,
+      );
+
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result['message']?.toString() ??
+              'Login failed. Please try again.',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  enabled: !_isLoading,
                   decoration: const InputDecoration(
                     hintText: 'Enter your email',
                     prefixIcon: Icon(Icons.email_outlined),
@@ -145,15 +182,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_outlined
@@ -166,8 +206,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       return 'Please enter your password';
                     }
 
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                    // Backend requires minimum 8 characters.
+                    if (value.length < 8) {
+                      return 'Password must be at least 8 characters';
                     }
 
                     return null;
@@ -180,26 +221,31 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Checkbox(
                       value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                      },
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
                     ),
+
                     const Text('Remember me'),
 
                     const Spacer(),
 
                     TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const ForgotPasswordScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const ForgotPasswordScreen(),
+                                ),
+                              );
+                            },
                       child: const Text('Forgot Password?'),
                     ),
                   ],
@@ -208,14 +254,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
 
                 ElevatedButton(
-                  onPressed: _login,
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  onPressed: _isLoading ? null : _login,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
 
                 const SizedBox(height: 28),
@@ -229,16 +284,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppColors.textSecondary,
                       ),
                     ),
+
                     TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const RegisterScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const RegisterScreen(),
+                                ),
+                              );
+                            },
                       child: const Text(
                         'Create Account',
                         style: TextStyle(

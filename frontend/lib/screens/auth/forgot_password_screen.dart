@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_colors.dart';
+import '../../services/api_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -12,9 +12,10 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState
     extends State<ForgotPasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _emailController =
+      TextEditingController();
 
+  bool _loading = false;
   bool _emailSent = false;
 
   @override
@@ -23,14 +24,63 @@ class _ForgotPasswordScreenState
     super.dispose();
   }
 
-  void _sendResetLink() {
-    if (!_formKey.currentState!.validate()) {
+  Future<void> _sendReset() async {
+    final email =
+        _emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your email'),
+        ),
+      );
       return;
     }
 
     setState(() {
-      _emailSent = true;
+      _loading = true;
     });
+
+    try {
+      final api = ApiService();
+
+      final response = await api.post(
+        '/auth/forgot-password',
+        body: {
+          'email': email,
+        },
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+        _emailSent = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            response is Map &&
+                    response['message'] != null
+                ? response['message'].toString()
+                : 'Password reset request sent',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
   }
 
   @override
@@ -39,169 +89,89 @@ class _ForgotPasswordScreenState
       appBar: AppBar(
         title: const Text('Forgot Password'),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 30),
-
-                // Icon
-                Center(
-                  child: Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(
-                        alpha: 0.10,
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: _emailSent
+            ? Center(
+                child: Column(
+                  mainAxisSize:
+                      MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.mark_email_read,
+                      size: 64,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Reset request sent',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight:
+                            FontWeight.bold,
                       ),
-                      borderRadius: BorderRadius.circular(25),
                     ),
-                    child: const Icon(
-                      Icons.lock_reset_rounded,
-                      size: 50,
-                      color: AppColors.primary,
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please check your email for the password reset instructions.',
+                      textAlign:
+                          TextAlign.center,
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () =>
+                          Navigator.pop(context),
+                      child:
+                          const Text('Back to Login'),
+                    ),
+                  ],
                 ),
-
-                const SizedBox(height: 30),
-
-                const Center(
-                  child: Text(
-                    'Forgot Password?',
+              )
+            : ListView(
+                children: [
+                  const Text(
+                    'Reset your password',
                     style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      fontSize: 26,
+                      fontWeight:
+                          FontWeight.bold,
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 12),
-
-                const Center(
-                  child: Text(
-                    'Enter your email address and we will send '
-                    'you a password reset link.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: AppColors.textSecondary,
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Enter your email and we will send you instructions to reset your password.',
+                  ),
+                  const SizedBox(height: 28),
+                  TextField(
+                    controller:
+                        _emailController,
+                    keyboardType:
+                        TextInputType.emailAddress,
+                    decoration:
+                        const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon:
+                          Icon(Icons.email),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 40),
-
-                const Text(
-                  'Email',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  enabled: !_emailSent,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your email',
-                    prefixIcon: Icon(
-                      Icons.email_outlined,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null ||
-                        value.trim().isEmpty) {
-                      return 'Please enter your email';
-                    }
-
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                if (_emailSent)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(
-                        alpha: 0.10,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Row(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          color: Colors.green,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'A password reset link has been '
-                            'sent to your email address.',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w500,
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed:
+                          _loading
+                              ? null
+                              : _sendReset,
+                      child: _loading
+                          ? const CircularProgressIndicator(
+                              strokeWidth: 2,
+                            )
+                          : const Text(
+                              'Send Reset Link',
                             ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
-
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed:
-                        _emailSent ? null : _sendResetLink,
-                    child: Text(
-                      _emailSent
-                          ? 'Reset Link Sent'
-                          : 'Send Reset Link',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Back to Login',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+                ],
+              ),
       ),
     );
   }
