@@ -1,29 +1,29 @@
 # 💊 HELPHA — Medication Management Application
 
-HELPHA is a medication management mobile application designed to help users organize their medications, create medication schedules, receive reminders, track medication doses, and review their medication history.
+HELPHA is a medication management mobile application designed to help users organize their medications, create medication schedules, manage reminders, track medication doses, and review medication history.
 
-The project follows a **separate frontend and backend architecture**, allowing the mobile application, backend services, and database to be developed and maintained independently.
+The project uses a separate **Flutter frontend**, **NestJS backend**, and **PostgreSQL database**, connected through a REST API.
 
 ---
 
-## 📱 Frontend — Mobile Application
+## 📱 Frontend
 
-### Technology
+### Technologies
 
 * Flutter
 * Dart
 
-Flutter provides a single codebase for developing the application for Android and iOS.
+Flutter provides a single codebase for the mobile application.
 
-### Main Frontend Responsibilities
+### Frontend Responsibilities
 
 The Flutter application handles:
 
 * User interface
-* Navigation
-* Authentication screens
+* Application navigation
+* Authentication
 * Medication management
-* Medication schedules
+* Medication scheduling
 * Reminders
 * Calendar
 * Medication history
@@ -31,7 +31,7 @@ The Flutter application handles:
 * Settings
 * Communication with the backend API
 
-### Main Flutter Structure
+### Frontend Structure
 
 ```text
 frontend/
@@ -52,7 +52,7 @@ frontend/
 
 # 🖥️ Backend
 
-### Technology
+### Technologies
 
 * Node.js
 * NestJS
@@ -61,7 +61,7 @@ frontend/
 * JWT Authentication
 * Prisma ORM
 
-The backend follows a modular architecture to separate application functionality into independent modules.
+The backend follows a modular architecture where different application responsibilities are separated into independent modules.
 
 ### Main Backend Modules
 
@@ -73,19 +73,23 @@ The backend follows a modular architecture to separate application functionality
 * History
 * Profile
 * Settings
+* Notifications
+* Reports
+* Storage
+* Sync
 
 ### Backend Responsibilities
 
 The backend handles:
 
-* Authentication
+* User authentication
 * User management
 * Medication data
 * Medication schedules
 * Dose logs
 * Reminder data
 * Medication history
-* API validation
+* Request validation
 * Authorization
 * Database communication
 
@@ -101,19 +105,7 @@ PostgreSQL
 
 Prisma
 
-The database uses a relational structure connecting users, medications, schedules, and dose logs.
-
-### Database Relationship
-
-```text
-User
- │
- ├── Medications
- │      │
- │      └── Schedules
- │
- └── Dose Logs
-```
+The database uses a relational structure to connect users, medications, schedules, and medication dose records.
 
 ### Main Database Models
 
@@ -125,13 +117,25 @@ User
 * NotificationPreferences
 * UserSettings
 
-The database is designed to maintain medication schedules and track individual medication doses.
+### Main Relationship
+
+```text
+User
+ │
+ ├── Medications
+ │      │
+ │      └── Schedules
+ │
+ └── Dose Logs
+```
+
+This structure allows HELPHA to associate medication schedules and dose records with the correct user.
 
 ---
 
 # 🔌 API Communication
 
-The Flutter frontend communicates with the NestJS backend through REST API endpoints.
+The Flutter application communicates with the NestJS backend through REST API endpoints.
 
 ### Main API Areas
 
@@ -144,32 +148,34 @@ The Flutter frontend communicates with the NestJS backend through REST API endpo
 /history
 ```
 
-Authentication-protected endpoints require a valid authenticated user.
+Protected endpoints require authentication.
 
-The backend validates requests and ensures that users can only access their own protected medication-related data.
+The backend validates requests and ensures that users can access only the data associated with their authenticated account.
 
 ---
 
-# 🔐 Authentication
+# 🔐 Authentication & Security
 
-HELPHA provides an authentication system for protecting user accounts and application data.
+HELPHA uses authentication and authorization mechanisms to protect user accounts and medication data.
 
-Current authentication functionality includes:
+Security features include:
 
 * User registration
 * User login
 * JWT-based authentication
-* Protected API endpoints
-* User-specific data access
+* Protected API routes
+* User-specific medication access
+* User-specific schedules
+* User-specific dose history
+* Input validation
 * Password protection
-
-Additional authentication features may be expanded in future versions.
+* Authorization checks
 
 ---
 
 # 💊 Medication Management
 
-HELPHA allows users to manage their medications from the mobile application.
+HELPHA provides functionality for managing medications.
 
 Users can:
 
@@ -200,7 +206,7 @@ Medication information can include:
 
 # 📅 Medication Scheduling
 
-HELPHA supports medication scheduling to help users organize when medications should be taken.
+HELPHA provides a scheduling system for organizing medication doses.
 
 Supported schedule types include:
 
@@ -211,36 +217,37 @@ Supported schedule types include:
 * Interval-based schedules
 * One-time schedules
 
-Schedules can include:
+Schedules can contain information such as:
 
 * Start date
 * End date
 * Time of day
 * Days of the week
 * Day of the month
-* Repeating intervals
+* Repeating interval
 * Timing information
 
-The scheduling system generates medication dose records that can later be tracked through the reminder and history systems.
+The backend generates and maintains medication dose records based on the configured schedules.
 
 ---
 
 # 🔔 Reminders
 
-The reminder system allows users to view upcoming and scheduled medication doses.
+HELPHA includes a reminder system for managing upcoming and scheduled medication doses.
 
-Reminder-related functionality includes:
+Current reminder functionality includes:
 
-* Upcoming medication reminders
-* Today's medication reminders
-* Medication reminder status
-* Dose confirmation
+* Upcoming reminders
+* Today's reminders
+* Reminder details
+* Dose status management
+* Marking a dose as taken
 * Skipping a dose
 * Delaying a dose
 * Marking a dose as missed
 * Pending doses
 
-Supported dose statuses include:
+### Dose Statuses
 
 ```text
 PENDING
@@ -254,16 +261,17 @@ MISSED
 
 # 📊 Dose Tracking
 
-HELPHA tracks individual medication doses.
+HELPHA records individual medication doses.
 
-Users can record whether a scheduled medication dose was:
+A dose can be recorded as:
 
 * Taken
 * Skipped
 * Delayed
 * Missed
+* Pending
 
-Dose records contain information such as:
+Dose records can contain:
 
 * Medication
 * Schedule
@@ -272,15 +280,15 @@ Dose records contain information such as:
 * Taken date and time
 * Notes
 
-This allows the application to maintain a history of medication activity.
+This information is used to maintain the user's medication activity and history.
 
 ---
 
 # 📖 Medication History
 
-The History section allows users to review medication-related dose activity.
+The History section provides a record of medication dose activity.
 
-The system stores completed medication actions and connects them with:
+History information can be associated with:
 
 * Medication
 * Schedule
@@ -289,15 +297,15 @@ The system stores completed medication actions and connects them with:
 * Date and time
 * Notes
 
-This provides users with a record of their medication activity.
+This allows users to review previous medication activity.
 
 ---
 
 # 📆 Calendar
 
-The calendar section provides a date-based view of medication schedules and medication activity.
+HELPHA includes a calendar section for viewing medication-related schedules and activity by date.
 
-The calendar is designed to help users understand:
+The calendar helps users view:
 
 * Scheduled medications
 * Upcoming doses
@@ -309,18 +317,16 @@ The calendar is designed to help users understand:
 
 # 🏠 Dashboard
 
-The HELPHA dashboard provides an overview of the user's medication activity.
+The Home Dashboard provides an overview of the user's medication activity.
 
-The dashboard can include:
+It provides access to important medication information such as:
 
 * Today's medications
 * Upcoming medication
-* Medication schedules
 * Medication reminders
+* Medication schedules
 * Medication completion information
 * Quick access to medication management
-
-The dashboard acts as the main entry point to the medication-management workflow.
 
 ---
 
@@ -332,30 +338,27 @@ Profile functionality includes:
 
 * Viewing profile information
 * Editing personal information
-* Managing account-related information
+* Managing account information
 * Accessing application settings
 
 ---
 
 # ⚙️ Settings
 
-The Settings section provides options for managing application preferences.
+The Settings section provides options for managing application preferences and account-related settings.
 
-Settings can include:
+Settings include areas related to:
 
-* Notification preferences
-* Reminder preferences
-* Account settings
-* Security settings
+* Notifications
+* Security
+* Account preferences
 * Application preferences
-
-Additional settings can be added as the project continues to evolve.
 
 ---
 
 # 📱 Main Application Screens
 
-The application contains the following main screens and sections:
+The main HELPHA application workflow includes:
 
 1. Splash Screen
 2. Onboarding
@@ -378,195 +381,30 @@ The application contains the following main screens and sections:
 
 # 🏗️ Project Architecture
 
-HELPHA follows a separated frontend/backend architecture.
+HELPHA follows a separated frontend and backend architecture.
 
 ```text
-┌─────────────────────────┐
-│     Flutter Mobile App  │
-│        Dart             │
-└────────────┬────────────┘
-             │
-             │ REST API
-             ▼
-┌─────────────────────────┐
-│      NestJS Backend     │
-│      TypeScript         │
-└────────────┬────────────┘
-             │
-             │ Prisma ORM
-             ▼
-┌─────────────────────────┐
-│      PostgreSQL         │
-│        Database         │
-└─────────────────────────┘
+┌─────────────────────────────┐
+│      Flutter Mobile App     │
+│          Dart               │
+└──────────────┬──────────────┘
+               │
+               │ REST API
+               ▼
+┌─────────────────────────────┐
+│       NestJS Backend        │
+│        TypeScript           │
+└──────────────┬──────────────┘
+               │
+               │ Prisma ORM
+               ▼
+┌─────────────────────────────┐
+│       PostgreSQL            │
+│         Database            │
+└─────────────────────────────┘
 ```
 
-This architecture separates the presentation layer, business logic, and data layer.
-
----
-
-# 🔒 Security
-
-HELPHA uses authentication and authorization mechanisms to protect user data.
-
-Security features include:
-
-* JWT-based authentication
-* Protected API routes
-* User-specific medication access
-* User-specific schedules
-* User-specific dose history
-* Input validation
-* Password protection
-* Authorization checks
-
-The backend ensures that protected medication data belongs to the authenticated user.
-
----
-
-# 📴 Offline Mode
-
-Offline functionality is an important planned enhancement for HELPHA because medication reminders should remain reliable even when the device has no internet connection.
-
-The planned offline architecture includes:
-
-* Local medication storage
-* Local schedule storage
-* Local dose records
-* Local notifications
-* Background reminder handling
-* Synchronization with the backend when connectivity is restored
-
-Possible technologies include:
-
-* SQLite
-* Drift
-* sqflite
-* Flutter local notifications
-* Background task scheduling
-
-These features are planned enhancements and are not considered part of the current core implementation unless specifically implemented in the current version.
-
----
-
-# 🔔 Future Reminder Enhancements
-
-Future versions may include more advanced reminder functionality.
-
-Planned possibilities include:
-
-* Push notifications
-* Smart snooze
-* Repeat-until-confirmed reminders
-* Escalating alerts for missed doses
-* Custom notification sounds
-* Custom vibration
-* Lock-screen notifications
-
-Possible technologies include:
-
-* Firebase Cloud Messaging
-* flutter_local_notifications
-* awesome_notifications
-* WorkManager
-
----
-
-# 🤖 Future AI Features
-
-AI functionality is planned as a future enhancement.
-
-Potential features include:
-
-* Smart medication assistance
-* Medication schedule suggestions
-* Medication adherence insights
-* Personalized reminders
-* Intelligent medication-related notifications
-
-These features are **not considered part of the current core implementation**.
-
----
-
-# 🔗 Future Integrations
-
-Potential future integrations include:
-
-### Drug Information
-
-* RxNorm
-* OpenFDA
-* Other medication information services
-
-### Communication
-
-* Email verification services
-* Email notification services
-
-### Cloud Storage
-
-* Cloud-based medication image storage
-* Backup and restore functionality
-
-### Health Platforms
-
-* Health data integrations
-* Health tracking services
-
-These integrations can be added as the application develops.
-
----
-
-# 📈 Future Health Metrics
-
-Additional health metrics may be added in future versions.
-
-Possible metrics include:
-
-* Blood sugar
-* Weight
-* Sleep
-* Other health-related measurements
-
-These features are currently deferred and are not part of the core medication-management implementation.
-
----
-
-# 🛠️ Future Infrastructure
-
-For a production deployment, the following technologies can be considered:
-
-| Layer              | Technology                    |
-| ------------------ | ----------------------------- |
-| API Hosting        | AWS ECS / Railway / Render    |
-| Database Hosting   | AWS RDS / Supabase            |
-| Containerization   | Docker                        |
-| Push Notifications | Firebase                      |
-| Queue / Cache      | Redis                         |
-| Secrets Management | AWS Secrets Manager / Doppler |
-| Error Monitoring   | Sentry                        |
-| Logging            | Winston / Pino                |
-| API Documentation  | Swagger / OpenAPI             |
-
-These technologies represent possible future production infrastructure rather than requirements for the current local development environment.
-
----
-
-# 📦 Technology Stack
-
-| Component                 | Technology               |
-| ------------------------- | ------------------------ |
-| Mobile Frontend           | Flutter / Dart           |
-| Backend                   | Node.js / NestJS         |
-| Backend Language          | TypeScript               |
-| Database                  | PostgreSQL               |
-| ORM                       | Prisma                   |
-| Authentication            | JWT                      |
-| API                       | REST                     |
-| Future Queue              | Redis / BullMQ           |
-| Future Push Notifications | Firebase Cloud Messaging |
-| Future Offline Database   | SQLite / Drift           |
-| Future Monitoring         | Sentry                   |
+This separation allows the frontend, backend, and database layers to be developed and maintained independently.
 
 ---
 
@@ -594,7 +432,7 @@ cd HELPHA
 
 ---
 
-# 2. Run the Backend
+## 2. Run the Backend
 
 Open a terminal and navigate to the backend:
 
@@ -608,7 +446,7 @@ Install dependencies:
 npm install
 ```
 
-Configure the PostgreSQL database connection in the backend environment configuration.
+Configure the PostgreSQL database connection using the backend environment configuration.
 
 Then start the NestJS development server:
 
@@ -616,13 +454,13 @@ Then start the NestJS development server:
 npm run start:dev
 ```
 
-The backend API will run locally according to the configured NestJS port.
+The backend runs locally using the configured NestJS port.
 
 ---
 
-# 3. Run the Frontend
+## 3. Run the Frontend
 
-Open another terminal:
+Open another terminal and navigate to the frontend:
 
 ```bash
 cd frontend
@@ -653,21 +491,148 @@ flutter run
 During development, the frontend and backend are run separately.
 
 ```text
-Frontend
-Flutter / Dart
-      │
-      │ HTTP REST API
-      ▼
-Backend
-NestJS / TypeScript
-      │
-      │ Prisma
-      ▼
-Database
-PostgreSQL
+Flutter Mobile Application
+            │
+            │ REST API
+            ▼
+      NestJS Backend
+            │
+            │ Prisma ORM
+            ▼
+      PostgreSQL Database
 ```
 
-This development structure makes it possible to modify the mobile application and backend independently.
+This structure allows each part of the system to be developed and maintained independently.
+
+---
+
+# 📴 Offline Mode
+
+Reliable offline functionality is an important future enhancement for HELPHA because medication management and reminders should remain dependable even when there is no internet connection.
+
+Planned offline capabilities include:
+
+* Local medication storage
+* Local schedule storage
+* Local dose records
+* Local notifications
+* Background reminder handling
+* Synchronization with the backend when connectivity is restored
+
+Possible technologies for future development include:
+
+* SQLite
+* Drift
+* sqflite
+* Flutter local notifications
+* Background task scheduling
+
+These features are considered future enhancements and are not presented as part of the current core implementation.
+
+---
+
+# 🔔 Future Reminder Enhancements
+
+Future versions of HELPHA may introduce more advanced reminder functionality, including:
+
+* Push notifications
+* Smart snooze
+* Repeat-until-confirmed reminders
+* Escalating alerts for missed doses
+* Custom notification sounds
+* Custom vibration
+* Lock-screen notifications
+
+Possible technologies include:
+
+* Firebase Cloud Messaging
+* flutter_local_notifications
+* awesome_notifications
+* WorkManager
+
+---
+
+# 🤖 Future AI Features
+
+AI functionality may be introduced in future versions.
+
+Potential features include:
+
+* Smart medication assistance
+* Medication schedule suggestions
+* Medication adherence insights
+* Personalized reminders
+* Intelligent medication-related notifications
+
+AI functionality is **not part of the current core implementation**.
+
+---
+
+# 🔗 Future Integrations
+
+Future versions may integrate with external services such as:
+
+* Drug information services
+* RxNorm
+* OpenFDA
+* Email verification services
+* Cloud storage services
+* Health data platforms
+
+These integrations are planned for future development.
+
+---
+
+# 📈 Future Health Metrics
+
+Additional health tracking functionality may be added in future versions.
+
+Possible metrics include:
+
+* Blood sugar
+* Weight
+* Sleep
+* Other health-related measurements
+
+These features are currently deferred.
+
+---
+
+# 🛠️ Future Production Infrastructure
+
+For future production deployment, HELPHA may use technologies such as:
+
+| Layer              | Possible Technology           |
+| ------------------ | ----------------------------- |
+| API Hosting        | AWS ECS / Railway / Render    |
+| Database Hosting   | AWS RDS / Supabase            |
+| Containerization   | Docker                        |
+| Push Notifications | Firebase                      |
+| Queue / Cache      | Redis                         |
+| Secrets Management | AWS Secrets Manager / Doppler |
+| Error Monitoring   | Sentry                        |
+| Logging            | Winston / Pino                |
+| API Documentation  | Swagger / OpenAPI             |
+
+These technologies represent possible future production infrastructure and are not required for the current local development setup.
+
+---
+
+# 📦 Technology Stack
+
+| Component                 | Technology               |
+| ------------------------- | ------------------------ |
+| Mobile Frontend           | Flutter / Dart           |
+| Backend                   | Node.js / NestJS         |
+| Backend Language          | TypeScript               |
+| Database                  | PostgreSQL               |
+| ORM                       | Prisma                   |
+| Authentication            | JWT                      |
+| API                       | REST                     |
+| Future Queue              | Redis / BullMQ           |
+| Future Push Notifications | Firebase Cloud Messaging |
+| Future Offline Database   | SQLite / Drift           |
+| Future Monitoring         | Sentry                   |
 
 ---
 
@@ -675,7 +640,7 @@ This development structure makes it possible to modify the mobile application an
 
 HELPHA currently focuses on the core medication-management workflow.
 
-### Current Core Functionality
+### Current Core Areas
 
 * Authentication
 * User management
@@ -690,9 +655,9 @@ HELPHA currently focuses on the core medication-management workflow.
 * REST API communication
 * PostgreSQL database integration
 
-### Planned Enhancements
+### Future Enhancements
 
-Future development may include:
+The following areas are planned for future versions:
 
 * Advanced offline synchronization
 * Local notification infrastructure
@@ -700,11 +665,10 @@ Future development may include:
 * Smart reminder functionality
 * AI-assisted medication features
 * External medication information services
-* Cloud backup
+* Cloud backup and synchronization
 * Additional health metrics
-* Advanced monitoring and production infrastructure
-
-The project is structured so these features can be added without changing the overall frontend/backend architecture.
+* Advanced monitoring
+* Production deployment infrastructure
 
 ---
 
@@ -716,21 +680,20 @@ The goal of HELPHA is to provide a centralized medication-management solution th
 * Create medication schedules
 * Manage medication reminders
 * Track medication doses
-* Record medication activity
 * Review medication history
 * Monitor medication adherence
 * Manage their account
 * Manage application preferences
 
-The application is designed using a modular architecture so that additional functionality can be introduced in future versions.
+The application uses a modular architecture so that additional functionality can be introduced in future versions without changing the overall structure of the system.
 
 ---
 
 # 🌱 Future Development
 
-HELPHA is designed with future expansion in mind.
+HELPHA is designed to support future expansion.
 
-Possible future improvements include:
+Potential future improvements include:
 
 1. Fully offline medication management
 2. Reliable local reminder scheduling
@@ -741,11 +704,11 @@ Possible future improvements include:
 7. Health metrics
 8. Data visualization and reports
 9. Cloud backup and restore
-10. Production deployment infrastructure
+10. Production deployment
 
 ---
 
-# 👨‍💻 Development Team
+# 👨‍💻 Project Information
 
 **Project:** HELPHA
 
@@ -761,6 +724,10 @@ Possible future improvements include:
 
 **ORM:** Prisma
 
+**API:** REST
+
+**Authentication:** JWT
+
 ---
 
 # 📄 License
@@ -768,13 +735,3 @@ Possible future improvements include:
 This project was developed as an academic/software development project.
 
 The source code and project materials are intended for educational and development purposes.
-
----
-
-## 📚 Summary
-
-HELPHA combines a Flutter mobile application with a NestJS REST API and PostgreSQL database to provide a structured medication-management system.
-
-The architecture separates the mobile interface, backend business logic, and database layer, making the application easier to maintain and extend.
-
-The current implementation focuses on medication management, scheduling, reminders, dose tracking, calendar functionality, medication history, user accounts, and settings, while future versions can introduce offline synchronization, advanced notifications, AI features, external integrations, health metrics, and production infrastructure.
