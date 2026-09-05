@@ -587,10 +587,8 @@ Make sure the following are installed:
 
 ## 1. Clone the Repository
 
-Replace `YOUR_GITHUB_REPOSITORY_URL` with the actual GitHub repository URL.
-
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/rayann328/HELPHA.git
 cd HELPHA
 ```
 
