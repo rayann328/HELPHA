@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/app_settings.dart';
+import '../core/localization/app_strings.dart';
 import '../services/settings_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -39,30 +40,30 @@ class _SettingsScreenState
           settings['darkMode'] ?? false;
 
       final language =
-          settings['language']?.toString() ??
-              'en';
+          settings['language']?.toString() ?? 'en';
 
       final reminders =
-          settings['medicationReminders'] ??
-              true;
+          settings['medicationReminders'] ?? true;
 
       setState(() {
-        _darkMode = darkMode;
+        _darkMode = darkMode == true;
         _language = language;
-        _medicationReminders = reminders;
+        _medicationReminders = reminders == true;
         _loading = false;
       });
 
-      AppSettings.setDarkMode(darkMode);
+      AppSettings.setDarkMode(
+        _darkMode,
+      );
 
       AppSettings.locale.value =
-          language == 'ar'
+          _language == 'ar'
               ? const Locale('ar')
               : const Locale('en');
 
       AppSettings.medicationReminders =
-          reminders;
-    } catch (e) {
+          _medicationReminders;
+    } catch (_) {
       if (!mounted) return;
 
       setState(() {
@@ -84,7 +85,7 @@ class _SettingsScreenState
       await _service.updateSettings(
         darkMode: value,
       );
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
 
       setState(() {
@@ -102,6 +103,7 @@ class _SettingsScreenState
       _language = value;
     });
 
+    // Change app language immediately.
     AppSettings.locale.value =
         value == 'ar'
             ? const Locale('ar')
@@ -155,12 +157,16 @@ class _SettingsScreenState
   }
 
   void _showAbout() {
+    final arabic =
+        AppStrings.isArabic(context);
+
     showAboutDialog(
       context: context,
       applicationName: 'HELPHA',
       applicationVersion: '1.0.0',
-      applicationLegalese:
-          'Medication and health management application',
+      applicationLegalese: arabic
+          ? 'تطبيق لإدارة الأدوية والصحة'
+          : 'Medication and health management application',
     );
   }
 
@@ -176,28 +182,57 @@ class _SettingsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(
+          AppStrings.get(
+            context,
+            'settings',
+          ),
+        ),
       ),
+
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // ----------------------------------------------------
+          // DARK MODE
+          // ----------------------------------------------------
+
           Card(
             child: SwitchListTile(
-              title: const Text('Dark mode'),
-              subtitle: const Text(
-                'Use dark appearance throughout the app',
+              title: Text(
+                AppStrings.get(
+                  context,
+                  'darkMode',
+                ),
+              ),
+              subtitle: Text(
+                AppStrings.get(
+                  context,
+                  'darkModeDescription',
+                ),
               ),
               value: _darkMode,
               onChanged: _setDarkMode,
             ),
           ),
 
+          // ----------------------------------------------------
+          // MEDICATION REMINDERS
+          // ----------------------------------------------------
+
           Card(
             child: SwitchListTile(
-              title:
-                  const Text('Medication reminders'),
-              subtitle: const Text(
-                'Enable medication reminders',
+              title: Text(
+                AppStrings.get(
+                  context,
+                  'medicationReminders',
+                ),
+              ),
+              subtitle: Text(
+                AppStrings.get(
+                  context,
+                  'medicationRemindersDescription',
+                ),
               ),
               value: _medicationReminders,
               onChanged:
@@ -205,27 +240,56 @@ class _SettingsScreenState
             ),
           ),
 
+          // ----------------------------------------------------
+          // LANGUAGE
+          // ----------------------------------------------------
+
           Card(
             child: ListTile(
-              title: const Text('Language'),
+              title: Text(
+                AppStrings.get(
+                  context,
+                  'language',
+                ),
+              ),
+
               subtitle: Text(
                 _language == 'ar'
-                    ? 'Arabic'
-                    : 'English',
+                    ? AppStrings.get(
+                        context,
+                        'arabic',
+                      )
+                    : AppStrings.get(
+                        context,
+                        'english',
+                      ),
               ),
+
               trailing:
                   DropdownButton<String>(
                 value: _language,
-                items: const [
+
+                items: [
                   DropdownMenuItem(
                     value: 'en',
-                    child: Text('English'),
+                    child: Text(
+                      AppStrings.get(
+                        context,
+                        'english',
+                      ),
+                    ),
                   ),
                   DropdownMenuItem(
                     value: 'ar',
-                    child: Text('Arabic'),
+                    child: Text(
+                      AppStrings.get(
+                        context,
+                        'arabic',
+                      ),
+                    ),
                   ),
                 ],
+
                 onChanged: (value) {
                   if (value != null) {
                     _setLanguage(value);
@@ -237,13 +301,29 @@ class _SettingsScreenState
 
           const SizedBox(height: 16),
 
+          // ----------------------------------------------------
+          // ABOUT
+          // ----------------------------------------------------
+
           Card(
             child: ListTile(
               leading:
-                  const Icon(Icons.info_outline),
-              title: const Text('About HELPHA'),
+                  const Icon(
+                Icons.info_outline,
+              ),
+
+              title: Text(
+                AppStrings.get(
+                  context,
+                  'aboutHelpha',
+                ),
+              ),
+
               trailing:
-                  const Icon(Icons.chevron_right),
+                  const Icon(
+                Icons.chevron_right,
+              ),
+
               onTap: _showAbout,
             ),
           ),

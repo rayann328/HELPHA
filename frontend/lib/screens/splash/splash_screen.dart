@@ -1,8 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../services/auth_service.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,28 +13,30 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  Timer? _timer;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const OnboardingScreen(),
-        ),
-      );
-    });
+    _startApp();
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _timer = null;
-    super.dispose();
+  Future<void> _startApp() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    final isLoggedIn = await _authService.isLoggedIn();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => isLoggedIn
+            ? const DashboardScreen()
+            : const OnboardingScreen(),
+      ),
+    );
   }
 
   @override
@@ -58,9 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 color: AppColors.primary,
               ),
             ),
-
             const SizedBox(height: 24),
-
             const Text(
               'HELPHA',
               style: TextStyle(
@@ -70,9 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 letterSpacing: 2,
               ),
             ),
-
             const SizedBox(height: 8),
-
             const Text(
               'Your medication companion',
               style: TextStyle(
@@ -80,9 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontSize: 15,
               ),
             ),
-
             const SizedBox(height: 40),
-
             const SizedBox(
               width: 28,
               height: 28,

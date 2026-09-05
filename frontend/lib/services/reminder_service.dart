@@ -80,22 +80,21 @@ class ReminderService {
     return Map<String, dynamic>.from(response);
   }
 
-  Future<Map<String, dynamic>> updateStatus(
-    String id,
-    String status, {
-    String? note,
-  }) async {
-    var endpoint =
-        '/reminders/$id/status?status=${Uri.encodeComponent(status)}';
+Future<Map<String, dynamic>> updateStatus(
+  String id,
+  String status, {
+  String? note,
+}) async {
+  var endpoint =
+      '/reminders/$id/status?status=${Uri.encodeComponent(status.toUpperCase())}';
 
-    if (note != null && note.isNotEmpty) {
-      endpoint +=
-          '&note=${Uri.encodeComponent(note)}';
-    }
-
-    final response =
-        await _api.patch(endpoint);
-
-    return Map<String, dynamic>.from(response);
+  if (note != null && note.isNotEmpty) {
+    endpoint +=
+        '&note=${Uri.encodeComponent(note)}';
   }
+
+  final response = await _api.patch(endpoint);
+
+  return Map<String, dynamic>.from(response);
+}
 }

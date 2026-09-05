@@ -34,7 +34,7 @@ class _RemindersScreenState
 
     try {
 final allReminders =
-    await _service.getUpcoming(limit: 20);
+    await _service.getToday();
 
 // Keep only the nearest upcoming reminder
 // for each medication.

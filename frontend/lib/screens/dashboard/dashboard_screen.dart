@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../core/constants/app_colors.dart';
-import '../../data/app_data.dart';
+import '../../models/medication.dart';
+import '../../services/reminder_service.dart';
 import '../../widgets/medication_card.dart';
 
 import '../../medications/medications_screen.dart';
@@ -15,23 +17,42 @@ class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() =>
-      _DashboardScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState
-    extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
+  late List<Widget> _pages;
 
-  final List<Widget> _pages = const [
-    _HomeContent(),
-    MedicationsScreen(),
-    ScheduleScreen(),
-    RemindersScreen(),
-    CalendarScreen(),
-    HistoryScreen(),
-    ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+
+    _pages = [
+      const _HomeContent(),
+      const MedicationsScreen(),
+      const ScheduleScreen(),
+      const RemindersScreen(),
+      const CalendarScreen(),
+      const HistoryScreen(),
+      const ProfileScreen(),
+    ];
+  }
+
+  Future<void> _selectPage(int index) async {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // Recreate Home so it loads the newest medication/reminder data.
+    if (index == 0) {
+      setState(() {
+        _pages[0] = _HomeContent(
+          key: UniqueKey(),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,57 +62,44 @@ class _DashboardScreenState
         children: _pages,
       ),
 
-      bottomNavigationBar:
-          BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: _selectPage,
         type: BottomNavigationBarType.fixed,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home),
+            label: AppStrings.get(context, 'home'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.medication_outlined),
-            activeIcon: Icon(Icons.medication),
-            label: 'Medications',
+            icon: const Icon(Icons.medication_outlined),
+            activeIcon: const Icon(Icons.medication),
+            label: AppStrings.get(context, 'medications'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.schedule_outlined),
-            activeIcon: Icon(Icons.schedule),
-            label: 'Schedule',
+            icon: const Icon(Icons.schedule_outlined),
+            activeIcon: const Icon(Icons.schedule),
+            label: AppStrings.get(context, 'schedule'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.notifications_none,
-            ),
-            activeIcon: Icon(
-              Icons.notifications,
-            ),
-            label: 'Reminders',
+            icon: const Icon(Icons.notifications_none),
+            activeIcon: const Icon(Icons.notifications),
+            label: AppStrings.get(context, 'reminders'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.calendar_month_outlined,
-            ),
-            activeIcon: Icon(
-              Icons.calendar_month,
-            ),
-            label: 'Calendar',
+            icon: const Icon(Icons.calendar_month_outlined),
+            activeIcon: const Icon(Icons.calendar_month),
+            label: AppStrings.get(context, 'calendar'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'History',
+            icon: const Icon(Icons.history),
+            label: AppStrings.get(context, 'history'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: AppStrings.get(context, 'profile'),
           ),
         ],
       ),
@@ -99,13 +107,138 @@ class _DashboardScreenState
   }
 }
 
-class _HomeContent extends StatelessWidget {
-  const _HomeContent();
+// ============================================================
+// HOME
+// ============================================================
+
+class _HomeContent extends StatefulWidget {
+  const _HomeContent({super.key});
+
+  @override
+  State<_HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<_HomeContent> {
+  final ReminderService _reminderService = ReminderService();
+
+  List<Medication> _todayMedications = [];
+
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTodayMedications();
+  }
+
+  Future<void> _loadTodayMedications() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+
+    try {
+      final reminders = await _reminderService.getToday();
+
+      final medicationMap = <String, Medication>{};
+
+      for (final reminder in reminders) {
+        final status =
+            reminder['status']?.toString().toUpperCase() ?? 'PENDING';
+
+        // Home should show only pending doses.
+        if (status != 'PENDING') {
+          continue;
+        }
+
+        final medicationData = reminder['medication'];
+
+        if (medicationData is! Map) {
+          continue;
+        }
+
+        final medicationJson =
+            Map<String, dynamic>.from(medicationData);
+
+        final medicationId =
+            medicationJson['id']?.toString() ??
+                reminder['medicationId']?.toString() ??
+                '';
+
+        if (medicationId.isEmpty) {
+          continue;
+        }
+
+        final medication = Medication.fromJson(medicationJson);
+
+        // Get scheduled time from reminder.
+        final scheduledAt =
+            reminder['scheduledAt']?.toString();
+
+        if (scheduledAt != null && scheduledAt.isNotEmpty) {
+          try {
+            final date =
+                DateTime.parse(scheduledAt).toLocal();
+
+            final time =
+                '${date.hour.toString().padLeft(2, '0')}:'
+                '${date.minute.toString().padLeft(2, '0')}';
+
+            // If medication has no times from backend,
+            // use today's actual reminder time.
+            if (medication.times.isEmpty) {
+              final updatedMedication = Medication(
+                id: medication.id,
+                name: medication.name,
+                genericName: medication.genericName,
+                brandName: medication.brandName,
+                dosage: medication.dosage,
+                strength: medication.strength,
+                type: medication.type,
+                color: medication.color,
+                shape: medication.shape,
+                notes: medication.notes,
+                photoUrl: medication.photoUrl,
+                frequency: medication.frequency,
+                times: [time],
+                startDate: medication.startDate,
+                endDate: medication.endDate,
+                status: medication.status,
+              );
+
+              medicationMap[medicationId] = updatedMedication;
+            } else {
+              medicationMap[medicationId] = medication;
+            }
+          } catch (_) {
+            medicationMap[medicationId] = medication;
+          }
+        } else {
+          medicationMap[medicationId] = medication;
+        }
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _todayMedications = medicationMap.values.toList();
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final medications = AppData.medications;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -116,225 +249,308 @@ class _HomeContent extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.person_outline,
-            ),
-            onPressed: () {
-              Navigator.push(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      const ProfileScreen(),
+                  builder: (_) => const ProfileScreen(),
                 ),
               );
+
+              _loadTodayMedications();
             },
           ),
         ],
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Good Morning 👋',
-              style: TextStyle(
-                fontSize: 16,
-                color:
-                    AppColors.textSecondary,
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            Text(
-              'Stay on track with your medications',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color:
-                    AppColors.textPrimary,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    title: 'Adherence',
-                    value: '92%',
-                    icon:
-                        Icons.trending_up,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    title: 'Streak',
-                    value: '7 days',
-                    icon: Icons
-                        .local_fire_department,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            const Text(
-              "Today's Medications",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight:
-                    FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            if (medications.isEmpty)
-              const Center(
-                child: Padding(
-                  padding:
-                      EdgeInsets.all(30),
-                  child: Text(
-                    'No medications for today.',
-                  ),
-                ),
-              )
-            else
-              ...medications.map(
-                (medication) =>
-                    MedicationCard(
-                  medication: medication,
+      body: RefreshIndicator(
+        onRefresh: _loadTodayMedications,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting
+              Text(
+                AppStrings.get(context, 'goodMorning'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
                 ),
               ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 4),
 
-            const Text(
-              'Quick Actions',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight:
-                    FontWeight.bold,
+              // Main message
+              Text(
+                AppStrings.get(context, 'stayOnTrack'),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 24),
 
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionButton(
-                    icon:
-                        Icons.medication,
-                    title: 'Medications',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              const MedicationsScreen(),
-                        ),
-                      );
-                    },
+              // Statistics
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      title: AppStrings.get(context, 'adherence'),
+                      value: '92%',
+                      icon: Icons.trending_up,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _ActionButton(
-                    icon: Icons.schedule,
-                    title: 'Schedule',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              const ScheduleScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 12),
+                  const SizedBox(width: 12),
 
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionButton(
-                    icon: Icons
-                        .notifications_none,
-                    title: 'Reminders',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              const RemindersScreen(),
-                        ),
-                      );
-                    },
+                  Expanded(
+                    child: _StatCard(
+                      title: AppStrings.get(context, 'streak'),
+                      value: '7 days',
+                      icon: Icons.local_fire_department,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _ActionButton(
-                    icon: Icons
-                        .calendar_month,
-                    title: 'Calendar',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              const CalendarScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 28),
 
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionButton(
-                    icon: Icons.history,
-                    title: 'History',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              const HistoryScreen(),
-                        ),
-                      );
-                    },
+              // Today's medications
+              Text(
+                AppStrings.get(context, 'todaysMedications'),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              _buildTodayMedications(),
+
+              const SizedBox(height: 20),
+
+              // Quick Actions
+              Text(
+                AppStrings.get(context, 'quickActions'),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Medications + Schedule
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.medication,
+                      title:
+                          AppStrings.get(context, 'medications'),
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const MedicationsScreen(),
+                          ),
+                        );
+
+                        _loadTodayMedications();
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: SizedBox(),
-                ),
-              ],
-            ),
-          ],
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.schedule,
+                      title:
+                          AppStrings.get(context, 'schedule'),
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const ScheduleScreen(),
+                          ),
+                        );
+
+                        _loadTodayMedications();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Reminders + Calendar
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.notifications_none,
+                      title:
+                          AppStrings.get(context, 'reminders'),
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const RemindersScreen(),
+                          ),
+                        );
+
+                        _loadTodayMedications();
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.calendar_month,
+                      title:
+                          AppStrings.get(context, 'calendar'),
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const CalendarScreen(),
+                          ),
+                        );
+
+                        _loadTodayMedications();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // History
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.history,
+                      title:
+                          AppStrings.get(context, 'history'),
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const HistoryScreen(),
+                          ),
+                        );
+
+                        _loadTodayMedications();
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  const Expanded(
+                    child: SizedBox(),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildTodayMedications() {
+    if (_loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(30),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 40,
+              ),
+
+              const SizedBox(height: 10),
+
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 12),
+
+              ElevatedButton(
+                onPressed: _loadTodayMedications,
+                child: Text(
+                  AppStrings.get(context, 'retry'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_todayMedications.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(30),
+          child: Text(
+            AppStrings.get(
+              context,
+              'noMedicationToday',
+            ),
+            style: const TextStyle(
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _todayMedications.map(
+        (medication) {
+          return MedicationCard(
+            medication: medication,
+          );
+        },
+      ).toList(),
+    );
+  }
 }
+
+// ============================================================
+// STAT CARD
+// ============================================================
 
 class _StatCard extends StatelessWidget {
   final String title;
@@ -353,15 +569,14 @@ class _StatCard extends StatelessWidget {
         Theme.of(context).colorScheme;
 
     return Container(
-      padding:
-          const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius:
-            BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colorScheme.outline
-              .withValues(alpha: 0.35),
+          color: colorScheme.outline.withValues(
+            alpha: 0.35,
+          ),
         ),
       ),
       child: Column(
@@ -372,17 +587,18 @@ class _StatCard extends StatelessWidget {
             icon,
             color: colorScheme.primary,
           ),
+
           const SizedBox(height: 12),
+
           Text(
             value,
             style: TextStyle(
               fontSize: 22,
-              fontWeight:
-                  FontWeight.bold,
-              color:
-                  colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
             ),
           ),
+
           Text(
             title,
             style: TextStyle(
@@ -396,8 +612,11 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _ActionButton
-    extends StatelessWidget {
+// ============================================================
+// ACTION BUTTON
+// ============================================================
+
+class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
@@ -415,21 +634,19 @@ class _ActionButton
 
     return InkWell(
       onTap: onTap,
-      borderRadius:
-          BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           vertical: 20,
           horizontal: 12,
         ),
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius:
-              BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: colorScheme.outline
-                .withValues(alpha: 0.35),
+            color: colorScheme.outline.withValues(
+              alpha: 0.35,
+            ),
           ),
         ),
         child: Column(
@@ -439,15 +656,16 @@ class _ActionButton
               size: 30,
               color: colorScheme.primary,
             ),
+
             const SizedBox(height: 8),
+
             Text(
               title,
               style: TextStyle(
-                fontWeight:
-                    FontWeight.w600,
-                color:
-                    colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
