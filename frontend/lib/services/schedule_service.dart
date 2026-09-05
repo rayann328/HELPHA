@@ -3,6 +3,10 @@ import 'api_service.dart';
 class ScheduleService {
   final ApiService _api = ApiService();
 
+  // ==================================================
+  // GET ALL SCHEDULES
+  // ==================================================
+
   Future<List<Map<String, dynamic>>> getSchedules({
     String? medicationId,
   }) async {
@@ -28,6 +32,10 @@ class ScheduleService {
         .toList();
   }
 
+  // ==================================================
+  // GET ONE SCHEDULE
+  // ==================================================
+
   Future<Map<String, dynamic>> getSchedule(
     String id,
   ) async {
@@ -36,6 +44,10 @@ class ScheduleService {
 
     return Map<String, dynamic>.from(response);
   }
+
+  // ==================================================
+  // CREATE SCHEDULE
+  // ==================================================
 
   Future<Map<String, dynamic>> createSchedule({
     required String medicationId,
@@ -61,37 +73,31 @@ class ScheduleService {
     }
 
     if (intervalValue != null) {
-      body['intervalValue'] =
-          intervalValue;
+      body['intervalValue'] = intervalValue;
     }
 
     if (intervalUnit != null &&
         intervalUnit.isNotEmpty) {
-      body['intervalUnit'] =
-          intervalUnit;
+      body['intervalUnit'] = intervalUnit;
     }
 
     if (daysOfWeek != null &&
         daysOfWeek.isNotEmpty) {
-      body['daysOfWeek'] =
-          daysOfWeek;
+      body['daysOfWeek'] = daysOfWeek;
     }
 
     if (dayOfMonth != null) {
-      body['dayOfMonth'] =
-          dayOfMonth;
+      body['dayOfMonth'] = dayOfMonth;
     }
 
     if (timeOfDay != null &&
         timeOfDay.isNotEmpty) {
-      body['timeOfDay'] =
-          timeOfDay;
+      body['timeOfDay'] = timeOfDay;
     }
 
     if (timingTag != null &&
         timingTag.isNotEmpty) {
-      body['timingTag'] =
-          timingTag;
+      body['timingTag'] = timingTag;
     }
 
     final response = await _api.post(
@@ -104,11 +110,16 @@ class ScheduleService {
     );
   }
 
+  // ==================================================
+  // UPDATE SCHEDULE
+  // ==================================================
+
   Future<Map<String, dynamic>> updateSchedule(
     String id, {
     String? scheduleType,
     String? startDate,
     String? endDate,
+    bool clearEndDate = false,
     int? intervalValue,
     String? intervalUnit,
     String? daysOfWeek,
@@ -128,9 +139,13 @@ class ScheduleService {
           startDate;
     }
 
-    if (endDate != null) {
-      body['endDate'] =
-          endDate;
+    // Important:
+    // If the user removes the end date,
+    // send null to the backend.
+    if (clearEndDate) {
+      body['endDate'] = null;
+    } else if (endDate != null) {
+      body['endDate'] = endDate;
     }
 
     if (intervalValue != null) {
@@ -172,6 +187,10 @@ class ScheduleService {
       response,
     );
   }
+
+  // ==================================================
+  // DELETE SCHEDULE
+  // ==================================================
 
   Future<void> deleteSchedule(
     String id,

@@ -66,7 +66,7 @@ await Navigator.push<Medication>(
 context, 
 MaterialPageRoute( 
 builder: (_) => 
-AddMedicationScreen(), 
+const AddMedicationScreen(), 
 ), 
 ); 
 

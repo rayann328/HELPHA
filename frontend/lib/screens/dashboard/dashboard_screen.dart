@@ -37,12 +37,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
   }
 
-  Future<void> _selectPage(int index) async {
-    setState(() => _selectedIndex = index);
-    if (index == 0) {
-      setState(() => _pages[0] = _HomeContent(key: UniqueKey()));
+Future<void> _selectPage(int index) async {
+  setState(() {
+    _selectedIndex = index;
+
+    switch (index) {
+      case 0:
+        _pages[0] = _HomeContent(key: UniqueKey());
+        break;
+
+      case 1:
+        _pages[1] = MedicationsScreen(key: UniqueKey());
+        break;
+
+      case 2:
+        _pages[2] = ScheduleScreen(key: UniqueKey());
+        break;
+
+      case 3:
+        _pages[3] = RemindersScreen(key: UniqueKey());
+        break;
+
+      case 4:
+        _pages[4] = CalendarScreen(key: UniqueKey());
+        break;
+
+      case 5:
+        _pages[5] = HistoryScreen(key: UniqueKey());
+        break;
+
+      case 6:
+        _pages[6] = ProfileScreen(key: UniqueKey());
+        break;
     }
-  }
+  });
+}
 
   @override
   Widget build(BuildContext context) {

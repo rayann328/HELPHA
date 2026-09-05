@@ -4,7 +4,8 @@ import '../core/localization/app_strings.dart';
 import '../core/constants/app_colors.dart'; 
 import '../models/medication.dart'; 
 import '../services/medication_service.dart'; 
-import '../services/reminder_service.dart'; 
+import '../services/reminder_service.dart';
+import 'add_medication_screen.dart'; 
 
 class MedicationDetailsScreen extends StatefulWidget { 
 final Medication medication; 
@@ -19,15 +20,23 @@ State<MedicationDetailsScreen> createState() =>
 _MedicationDetailsScreenState(); 
 } 
 
-class _MedicationDetailsScreenState 
-extends State<MedicationDetailsScreen> { 
-final MedicationService _medicationService = 
-MedicationService(); 
+class _MedicationDetailsScreenState
+    extends State<MedicationDetailsScreen> {
+  late Medication _medication;
 
-final ReminderService _reminderService = 
-ReminderService(); 
+  @override
+  void initState() {
+    super.initState();
+    _medication = widget.medication;
+  }
 
-bool _loading = false; 
+  final MedicationService _medicationService =
+      MedicationService();
+
+  final ReminderService _reminderService =
+      ReminderService();
+
+  bool _loading = false;
 
 Future<void> _delete() async { 
 final confirmed = 
@@ -219,33 +228,70 @@ subtitle: Text(value),
 } 
 
 @override 
-Widget build(BuildContext context) { 
-final medication = widget.medication; 
+Widget build(BuildContext context) {
+  final medication = _medication;
 
-return Scaffold( 
-appBar: AppBar( 
-title: Text(medication.name), 
-actions: [ 
-PopupMenuButton<String>( 
-onSelected: (value) { 
-if (value == 'archive') { 
-_archive(); 
-} else if (value == 'delete') { 
-_delete(); 
-} 
-}, 
-itemBuilder: (context) => [ 
-PopupMenuItem( 
-value: 'archive', 
-child: Text(AppStrings.get(context, 'archive')), 
-), 
-PopupMenuItem( 
-value: 'delete', 
-child: Text(AppStrings.get(context, 'delete')), 
-), 
-], 
-), 
-], 
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(medication.name),
+actions: [
+  IconButton(
+    icon: const Icon(Icons.edit),
+    tooltip: 'Edit Medication',
+    onPressed: _loading
+        ? null
+        : () async {
+            final updated =
+                await Navigator.push<Medication>(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    AddMedicationScreen(
+                  medication: medication,
+                ),
+              ),
+            );
+
+            if (!mounted) {
+              return;
+            }
+
+            if (updated != null) {
+              setState(() {});
+            }
+          },
+  ),
+
+  PopupMenuButton<String>(
+    onSelected: (value) {
+      if (value == 'archive') {
+        _archive();
+      } else if (value == 'delete') {
+        _delete();
+      }
+    },
+    itemBuilder: (context) => [
+      PopupMenuItem(
+        value: 'archive',
+        child: Text(
+          AppStrings.get(
+            context,
+            'archive',
+          ),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'delete',
+        child: Text(
+          AppStrings.get(
+            context,
+            'delete',
+          ),
+        ),
+      ),
+    ],
+  ),
+],
 ), 
 body: ListView( 
 padding: EdgeInsets.all(20), 
