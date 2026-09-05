@@ -2,235 +2,169 @@ import 'package:flutter/material.dart';
 
 class AppStrings {
   static String get(BuildContext context, String key) {
-    final isArabic =
-        Localizations.localeOf(context).languageCode == 'ar';
-
-    return isArabic
-        ? _arabic[key] ?? _english[key] ?? key
-        : _english[key] ?? key;
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    return isArabic ? (_arabic[key] ?? _english[key] ?? key) : (_english[key] ?? key);
   }
 
-  static bool isArabic(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'ar';
-  }
+  static bool isArabic(BuildContext context) =>
+      Localizations.localeOf(context).languageCode == 'ar';
 
   static const Map<String, String> _english = {
-    // General
-    'appName': 'HELPHA',
-    'today': 'Today',
-    'save': 'Save',
-    'cancel': 'Cancel',
-    'delete': 'Delete',
-    'edit': 'Edit',
-    'refresh': 'Refresh',
-    'retry': 'Retry',
-    'yes': 'Yes',
-    'no': 'No',
-    'loading': 'Loading...',
-    'error': 'Error',
-
-    // Navigation
-    'home': 'Home',
-    'medications': 'Medications',
-    'schedule': 'Schedule',
-    'reminders': 'Reminders',
-    'history': 'History',
-    'profile': 'Profile',
-    'settings': 'Settings',
-
-    // Home
-    'todaysMedications': "Today's Medications",
-    'noMedicationToday': 'No medication scheduled for today.',
-    'viewAll': 'View All',
-
-    // Medications
-    'addMedication': 'Add Medication',
-    'medicationName': 'Medication Name',
-    'dosage': 'Dosage',
-    'strength': 'Strength',
-    'type': 'Type',
-    'notes': 'Notes',
-    'active': 'Active',
-    'archived': 'Archived',
-
-    // Schedule
-    'noMedicationsToday': 'No medications today',
-    'scheduleClear': 'Your schedule is clear for today.',
-    'scheduled': 'scheduled',
-    'taken': 'Taken',
-    'skipped': 'Skipped',
-    'missed': 'Missed',
-    'delayed': 'Delayed',
-    'pending': 'Pending',
-
-    // Reminders
-    'noUpcomingReminders': 'No upcoming reminders.',
-    'allCaughtUp': 'You are all caught up!',
-
-    // History
-    'medicationHistory': 'Medication History',
-    'noHistory': 'No medication history yet.',
-
-    // Profile
-    'personalInformation': 'Personal Information',
-    'security': 'Security',
-    'logout': 'Logout',
-
-    // Settings
-    'darkMode': 'Dark mode',
-    'darkModeDescription':
-        'Use dark appearance throughout the app',
+    'appName': 'HELPHA', 'today': 'Today', 'save': 'Save', 'cancel': 'Cancel',
+    'delete': 'Delete', 'edit': 'Edit', 'refresh': 'Refresh', 'retry': 'Retry',
+    'yes': 'Yes', 'no': 'No', 'loading': 'Loading...', 'error': 'Error',
+    'home': 'Home', 'medications': 'Medications', 'schedule': 'Schedule',
+    'reminders': 'Reminders', 'calendar': 'Calendar', 'history': 'History',
+    'profile': 'Profile', 'settings': 'Settings',
+    'goodMorning': 'Good Morning 👋',
+    'stayOnTrack': 'Stay on track with your medications',
+    'todaysMedications': "Today's Medications", 'quickActions': 'Quick Actions',
+    'adherence': 'Adherence', 'streak': 'Streak', 'days': 'days',
+    'noMedicationToday': 'No medications for today.',
+    'addMedication': 'Add Medication', 'medicationName': 'Medication name',
+    'dosage': 'Dosage', 'strength': 'Strength', 'type': 'Type', 'notes': 'Notes',
+    'frequency': 'Frequency', 'medicationTime': 'Medication time',
+    'startDate': 'Start date', 'endDate': 'End date', 'noEndDate': 'No end date',
+    'additionalInstructions': 'Additional instructions...',
+    'saveMedication': 'Save Medication', 'noMedications': 'No medications yet',
+    'addFirstMedication': 'Tap + to add your first medication.',
+    'tablet': 'Tablet', 'capsule': 'Capsule', 'syrup': 'Syrup',
+    'injection': 'Injection', 'other': 'Other', 'daily': 'Daily', 'weekly': 'Weekly',
+    'monthly': 'Monthly', 'oneTime': 'One-time',
+    'medicationAdded': 'Medication and schedule added successfully',
+    'deleteMedicationQuestion': 'Delete medication?',
+    'deleteMedicationDescription': 'This will permanently remove this medication.',
+    'medicationDeleted': 'Medication deleted', 'archive': 'Archive',
+    'noReminderToday': 'No reminder found for this medication today.',
+    'markTodayTaken': 'Mark Today as Taken',
+    'medicationMarkedTaken': 'Medication marked as taken',
+    'noUpcomingReminders': 'No upcoming reminders.', 'allCaughtUp': 'You are all caught up!',
+    'taken': 'Taken', 'skipped': 'Skipped', 'missed': 'Missed', 'delayed': 'Delayed',
+    'pending': 'Pending', 'skip': 'Skip',
+    'noMedicationsToday': 'No medications today', 'scheduleClear': 'Your schedule is clear for today.',
+    'medicationHistory': 'Medication History', 'noHistory': 'No medication history yet.',
+    'personalInformation': 'Personal Information', 'notifications': 'Notifications',
+    'security': 'Security', 'logout': 'Logout', 'firstName': 'First name',
+    'lastName': 'Last name', 'phone': 'Phone', 'saveChanges': 'Save Changes',
+    'profileUpdated': 'Profile updated successfully',
+    'securityOptions': 'Security Options', 'biometricLogin': 'Biometric login',
+    'biometricDescription': 'Use biometric authentication when available',
+    'twoFactor': 'Two-factor authentication',
+    'twoFactorDescription': 'Add another layer of account security',
+    'changePassword': 'Change Password', 'currentPassword': 'Current password',
+    'newPassword': 'New password', 'confirmNewPassword': 'Confirm new password',
+    'fillPasswordFields': 'Please fill all password fields',
+    'passwordMinimum': 'New password must be at least 8 characters',
+    'passwordsDoNotMatch': 'Passwords do not match',
+    'passwordChanged': 'Password changed successfully',
+    'darkMode': 'Dark mode', 'darkModeDescription': 'Use dark appearance throughout the app',
     'medicationReminders': 'Medication reminders',
-    'medicationRemindersDescription':
-        'Enable medication reminders',
-    'language': 'Language',
-    'english': 'English',
-    'arabic': 'Arabic',
+    'medicationRemindersDescription': 'Enable medication reminders',
+    'language': 'Language', 'english': 'English', 'arabic': 'Arabic',
     'aboutHelpha': 'About HELPHA',
-
-    // Actions
-    'markAsTaken': 'Medication marked as taken.',
-    'medicationSkipped': 'Medication skipped.',
-    'medicationDelayed': 'Medication marked as delayed.',
-    // Auth
-'welcomeBack': 'Welcome Back!',
-'loginSubtitle': 'Login to continue using HELPHA',
-'email': 'Email',
-'enterEmail': 'Enter your email',
-'password': 'Password',
-'enterPassword': 'Enter your password',
-'rememberMe': 'Remember me',
-'forgotPassword': 'Forgot Password?',
-'login': 'Login',
-'noAccount': "Don't have an account?",
-'createAccount': 'Create Account',
-
-// Common medication actions
-'take': 'Take',
-'skip': 'Skip',
-'details': 'Details',
-'close': 'Close',
-'confirm': 'Confirm',
-
-// Splash / Onboarding
-'medicationCompanion': 'Your medication companion',
-'getStarted': 'Get Started',
-'next': 'Next',
-'skipIntro': 'Skip',
-
-// Errors
-'loginFailed': 'Login failed. Please try again.',
-'connectionError':
-    'Could not connect to the HELPHA server. Make sure the backend is running.',
+    'welcomeBack': 'Welcome Back!', 'loginSubtitle': 'Login to continue using HELPHA',
+    'email': 'Email', 'enterEmail': 'Enter your email', 'password': 'Password',
+    'enterPassword': 'Enter your password', 'rememberMe': 'Remember me',
+    'forgotPassword': 'Forgot Password?', 'login': 'Login',
+    'noAccount': "Don't have an account?", 'createAccount': 'Create Account',
+    'loginFailed': 'Login failed. Please try again.',
+    'pleaseEnterEmail': 'Please enter your email', 'invalidEmail': 'Please enter a valid email',
+    'pleaseEnterPassword': 'Please enter your password',
+    'passwordEight': 'Password must be at least 8 characters',
+    'createYourAccount': 'Create Your Account',
+    'createAccountSubtitle': 'Create an account to start managing your medications.',
+    'fullName': 'Full Name', 'enterFullName': 'Enter your full name',
+    'pleaseEnterName': 'Please enter your name', 'createPassword': 'Create a password',
+    'pleaseCreatePassword': 'Please enter a password', 'confirmPassword': 'Confirm Password',
+    'confirmYourPassword': 'Confirm your password', 'pleaseConfirmPassword': 'Please confirm your password',
+    'terms': 'I agree to the Terms and Conditions and Privacy Policy.',
+    'agreeTerms': 'Please agree to the Terms and Conditions.',
+    'registrationSuccessful': 'Registration successful!',
+    'registrationFailed': 'Registration failed. Please try again.',
+    'alreadyHaveAccount': 'Already have an account? Login',
+    'forgotPasswordTitle': 'Forgot Password', 'resetRequestSent': 'Reset request sent',
+    'checkEmail': 'Please check your email for the password reset instructions.',
+    'backToLogin': 'Back to Login', 'resetYourPassword': 'Reset your password',
+    'resetPasswordDescription': 'Enter your email and we will send you instructions to reset your password.',
+    'sendResetLink': 'Send Reset Link', 'passwordResetRequestSent': 'Password reset request sent',
+    'getStarted': 'Get Started', 'next': 'Continue', 'skipIntro': 'Skip',
+    'manageMedications': 'Manage Your Medications',
+    'manageMedicationsDescription': 'Keep all your medications organized in one simple and secure place.',
+    'neverMissDose': 'Never Miss a Dose',
+    'neverMissDoseDescription': 'Set schedules and reminders to help you take your medications on time.',
+    'trackProgress': 'Track Your Progress',
+    'trackProgressDescription': 'Monitor your medication history, adherence, completion rate and streaks.',
+    'noMedicationsScheduled': 'No medications scheduled for this date.',
+    'yourMedicationCompanion': 'Your medication companion',
   };
 
   static const Map<String, String> _arabic = {
-    // General
-    'appName': 'HELPHA',
-    'today': 'اليوم',
-    'save': 'حفظ',
-    'cancel': 'إلغاء',
-    'delete': 'حذف',
-    'edit': 'تعديل',
-    'refresh': 'تحديث',
-    'retry': 'إعادة المحاولة',
-    'yes': 'نعم',
-    'no': 'لا',
-    'loading': 'جارٍ التحميل...',
-    'error': 'خطأ',
-
-    // Navigation
-    'home': 'الرئيسية',
-    'medications': 'الأدوية',
-    'schedule': 'الجدول',
-    'reminders': 'التذكيرات',
-    'history': 'السجل',
-    'profile': 'الملف الشخصي',
-    'settings': 'الإعدادات',
-
-    // Home
-    'todaysMedications': 'أدوية اليوم',
-    'noMedicationToday': 'لا توجد أدوية مجدولة لليوم.',
-    'viewAll': 'عرض الكل',
-
-    // Medications
-    'addMedication': 'إضافة دواء',
-    'medicationName': 'اسم الدواء',
-    'dosage': 'الجرعة',
-    'strength': 'التركيز',
-    'type': 'النوع',
-    'notes': 'ملاحظات',
-    'active': 'نشط',
-    'archived': 'مؤرشف',
-
-    // Schedule
-    'noMedicationsToday': 'لا توجد أدوية اليوم',
-    'scheduleClear': 'جدولك خالٍ لهذا اليوم.',
-    'scheduled': 'مجدول',
-    'taken': 'تم التناول',
-    'skipped': 'تم التخطي',
-    'missed': 'فائت',
-    'delayed': 'مؤجل',
-    'pending': 'قيد الانتظار',
-
-    // Reminders
-    'noUpcomingReminders': 'لا توجد تذكيرات قادمة.',
-    'allCaughtUp': 'لقد انتهيت من جميع التذكيرات!',
-
-    // History
-    'medicationHistory': 'سجل الأدوية',
-    'noHistory': 'لا يوجد سجل للأدوية حتى الآن.',
-
-    // Profile
-    'personalInformation': 'المعلومات الشخصية',
-    'security': 'الأمان',
-    'logout': 'تسجيل الخروج',
-
-    // Settings
-    'darkMode': 'الوضع الداكن',
-    'darkModeDescription':
-        'استخدام المظهر الداكن في جميع أنحاء التطبيق',
-    'medicationReminders': 'تذكيرات الأدوية',
-    'medicationRemindersDescription':
-        'تفعيل تذكيرات الأدوية',
-    'language': 'اللغة',
-    'english': 'الإنجليزية',
-    'arabic': 'العربية',
-    'aboutHelpha': 'حول HELPHA',
-
-    // Actions
-    'markAsTaken': 'تم تسجيل الدواء كمُتناول.',
-    'medicationSkipped': 'تم تخطي الدواء.',
-    'medicationDelayed': 'تم تأجيل الدواء.',
-    // Auth
-'welcomeBack': 'أهلاً بعودتك!',
-'loginSubtitle': 'سجّل الدخول للمتابعة باستخدام HELPHA',
-'email': 'البريد الإلكتروني',
-'enterEmail': 'أدخل بريدك الإلكتروني',
-'password': 'كلمة المرور',
-'enterPassword': 'أدخل كلمة المرور',
-'rememberMe': 'تذكرني',
-'forgotPassword': 'نسيت كلمة المرور؟',
-'login': 'تسجيل الدخول',
-'noAccount': 'ليس لديك حساب؟',
-'createAccount': 'إنشاء حساب',
-
-// Common medication actions
-'take': 'تناول',
-'skip': 'تخطي',
-'details': 'التفاصيل',
-'close': 'إغلاق',
-'confirm': 'تأكيد',
-
-// Splash / Onboarding
-'medicationCompanion': 'رفيقك لإدارة الأدوية',
-'getStarted': 'ابدأ الآن',
-'next': 'التالي',
-'skipIntro': 'تخطي',
-
-// Errors
-'loginFailed': 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.',
-'connectionError':
-    'تعذر الاتصال بخادم HELPHA. تأكد من تشغيل الخادم.',
+    'appName': 'HELPHA', 'today': 'اليوم', 'save': 'حفظ', 'cancel': 'إلغاء',
+    'delete': 'حذف', 'edit': 'تعديل', 'refresh': 'تحديث', 'retry': 'إعادة المحاولة',
+    'yes': 'نعم', 'no': 'لا', 'loading': 'جارٍ التحميل...', 'error': 'خطأ',
+    'home': 'الرئيسية', 'medications': 'الأدوية', 'schedule': 'الجدول',
+    'reminders': 'التذكيرات', 'calendar': 'التقويم', 'history': 'السجل',
+    'profile': 'الملف الشخصي', 'settings': 'الإعدادات',
+    'goodMorning': 'صباح الخير 👋', 'stayOnTrack': 'حافظ على انتظامك في تناول أدويتك',
+    'todaysMedications': 'أدوية اليوم', 'quickActions': 'إجراءات سريعة',
+    'adherence': 'الالتزام', 'streak': 'السلسلة', 'days': 'أيام',
+    'noMedicationToday': 'لا توجد أدوية لليوم.',
+    'addMedication': 'إضافة دواء', 'medicationName': 'اسم الدواء',
+    'dosage': 'الجرعة', 'strength': 'التركيز', 'type': 'النوع', 'notes': 'ملاحظات',
+    'frequency': 'التكرار', 'medicationTime': 'وقت الدواء', 'startDate': 'تاريخ البدء',
+    'endDate': 'تاريخ الانتهاء', 'noEndDate': 'لا يوجد تاريخ انتهاء',
+    'additionalInstructions': 'تعليمات إضافية...', 'saveMedication': 'حفظ الدواء',
+    'noMedications': 'لا توجد أدوية بعد', 'addFirstMedication': 'اضغط + لإضافة أول دواء لك.',
+    'tablet': 'قرص', 'capsule': 'كبسولة', 'syrup': 'شراب', 'injection': 'حقنة', 'other': 'أخرى',
+    'daily': 'يومي', 'weekly': 'أسبوعي', 'monthly': 'شهري', 'oneTime': 'مرة واحدة',
+    'medicationAdded': 'تمت إضافة الدواء والجدول بنجاح',
+    'deleteMedicationQuestion': 'حذف الدواء؟',
+    'deleteMedicationDescription': 'سيؤدي ذلك إلى حذف هذا الدواء نهائيًا.',
+    'medicationDeleted': 'تم حذف الدواء', 'archive': 'أرشفة',
+    'noReminderToday': 'لم يتم العثور على تذكير لهذا الدواء اليوم.',
+    'markTodayTaken': 'تسجيل اليوم كمُتناول', 'medicationMarkedTaken': 'تم تسجيل الدواء كمُتناول',
+    'noUpcomingReminders': 'لا توجد تذكيرات قادمة.', 'allCaughtUp': 'لقد انتهيت من جميع التذكيرات!',
+    'taken': 'تم التناول', 'skipped': 'تم التخطي', 'missed': 'فائت', 'delayed': 'مؤجل',
+    'pending': 'قيد الانتظار', 'skip': 'تخطي', 'noMedicationsToday': 'لا توجد أدوية اليوم',
+    'scheduleClear': 'جدولك خالٍ لهذا اليوم.', 'medicationHistory': 'سجل الأدوية',
+    'noHistory': 'لا يوجد سجل للأدوية حتى الآن.', 'personalInformation': 'المعلومات الشخصية',
+    'notifications': 'الإشعارات', 'security': 'الأمان', 'logout': 'تسجيل الخروج',
+    'firstName': 'الاسم الأول', 'lastName': 'اسم العائلة', 'phone': 'رقم الهاتف',
+    'saveChanges': 'حفظ التغييرات', 'profileUpdated': 'تم تحديث الملف الشخصي بنجاح',
+    'securityOptions': 'خيارات الأمان', 'biometricLogin': 'تسجيل الدخول بالبصمة',
+    'biometricDescription': 'استخدام المصادقة البيومترية عند توفرها',
+    'twoFactor': 'المصادقة الثنائية', 'twoFactorDescription': 'إضافة طبقة أخرى من الأمان إلى حسابك',
+    'changePassword': 'تغيير كلمة المرور', 'currentPassword': 'كلمة المرور الحالية',
+    'newPassword': 'كلمة المرور الجديدة', 'confirmNewPassword': 'تأكيد كلمة المرور الجديدة',
+    'fillPasswordFields': 'يرجى ملء جميع حقول كلمة المرور',
+    'passwordMinimum': 'يجب أن تتكون كلمة المرور الجديدة من 8 أحرف على الأقل',
+    'passwordsDoNotMatch': 'كلمتا المرور غير متطابقتين', 'passwordChanged': 'تم تغيير كلمة المرور بنجاح',
+    'darkMode': 'الوضع الداكن', 'darkModeDescription': 'استخدام المظهر الداكن في جميع أنحاء التطبيق',
+    'medicationReminders': 'تذكيرات الأدوية', 'medicationRemindersDescription': 'تفعيل تذكيرات الأدوية',
+    'language': 'اللغة', 'english': 'الإنجليزية', 'arabic': 'العربية', 'aboutHelpha': 'حول HELPHA',
+    'welcomeBack': 'أهلاً بعودتك!', 'loginSubtitle': 'سجّل الدخول للمتابعة باستخدام HELPHA',
+    'email': 'البريد الإلكتروني', 'enterEmail': 'أدخل بريدك الإلكتروني', 'password': 'كلمة المرور',
+    'enterPassword': 'أدخل كلمة المرور', 'rememberMe': 'تذكرني', 'forgotPassword': 'نسيت كلمة المرور؟',
+    'login': 'تسجيل الدخول', 'noAccount': 'ليس لديك حساب؟', 'createAccount': 'إنشاء حساب',
+    'loginFailed': 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.',
+    'pleaseEnterEmail': 'يرجى إدخال بريدك الإلكتروني', 'invalidEmail': 'يرجى إدخال بريد إلكتروني صالح',
+    'pleaseEnterPassword': 'يرجى إدخال كلمة المرور', 'passwordEight': 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل',
+    'createYourAccount': 'أنشئ حسابك', 'createAccountSubtitle': 'أنشئ حسابًا لبدء إدارة أدويتك.',
+    'fullName': 'الاسم الكامل', 'enterFullName': 'أدخل اسمك الكامل', 'pleaseEnterName': 'يرجى إدخال اسمك',
+    'createPassword': 'إنشاء كلمة مرور', 'pleaseCreatePassword': 'يرجى إدخال كلمة مرور',
+    'confirmPassword': 'تأكيد كلمة المرور', 'confirmYourPassword': 'أكد كلمة المرور',
+    'pleaseConfirmPassword': 'يرجى تأكيد كلمة المرور', 'terms': 'أوافق على الشروط والأحكام وسياسة الخصوصية.',
+    'agreeTerms': 'يرجى الموافقة على الشروط والأحكام.', 'registrationSuccessful': 'تم إنشاء الحساب بنجاح!',
+    'registrationFailed': 'فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.', 'alreadyHaveAccount': 'لديك حساب بالفعل؟ تسجيل الدخول',
+    'forgotPasswordTitle': 'نسيت كلمة المرور', 'resetRequestSent': 'تم إرسال طلب إعادة التعيين',
+    'checkEmail': 'يرجى التحقق من بريدك الإلكتروني للحصول على تعليمات إعادة تعيين كلمة المرور.',
+    'backToLogin': 'العودة إلى تسجيل الدخول', 'resetYourPassword': 'إعادة تعيين كلمة المرور',
+    'resetPasswordDescription': 'أدخل بريدك الإلكتروني وسنرسل لك تعليمات لإعادة تعيين كلمة المرور.',
+    'sendResetLink': 'إرسال رابط إعادة التعيين', 'passwordResetRequestSent': 'تم إرسال طلب إعادة تعيين كلمة المرور',
+    'getStarted': 'ابدأ الآن', 'next': 'متابعة', 'skipIntro': 'تخطي',
+    'manageMedications': 'إدارة أدويتك', 'manageMedicationsDescription': 'احتفظ بجميع أدويتك منظمة في مكان واحد بسيط وآمن.',
+    'neverMissDose': 'لا تفوّت أي جرعة', 'neverMissDoseDescription': 'حدد الجداول والتذكيرات لمساعدتك على تناول أدويتك في الوقت المحدد.',
+    'trackProgress': 'تابع تقدمك', 'trackProgressDescription': 'راقب سجل أدويتك ومدى الالتزام ومعدل الإنجاز وسلسلة الأيام.',
+    'noMedicationsScheduled': 'لا توجد أدوية مجدولة لهذا التاريخ.', 'yourMedicationCompanion': 'رفيقك لإدارة الأدوية',
   };
 }

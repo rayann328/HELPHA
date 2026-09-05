@@ -1,69 +1,55 @@
 import 'package:flutter/material.dart';
-
+import '../core/localization/app_strings.dart';
 import '../core/constants/app_colors.dart';
 import '../services/reminder_service.dart';
-
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
-
   @override
   State<RemindersScreen> createState() =>
       _RemindersScreenState();
 }
-
 class _RemindersScreenState
     extends State<RemindersScreen> {
   final ReminderService _service =
       ReminderService();
-
   List<Map<String, dynamic>> _reminders = [];
   bool _loading = true;
   String? _error;
-
   @override
   void initState() {
     super.initState();
     _loadReminders();
   }
-
   Future<void> _loadReminders() async {
     setState(() {
       _loading = true;
       _error = null;
     });
-
     try {
 final allReminders =
     await _service.getToday();
-
 // Keep only the nearest upcoming reminder
 // for each medication.
 final uniqueReminders =
     <String, Map<String, dynamic>>{};
-
 for (final reminder in allReminders) {
   final medication =
       reminder['medication'];
-
   String medicationId = '';
-
   if (medication is Map) {
     medicationId =
         medication['id']?.toString() ?? '';
   }
-
   // Fallback to DoseLog medicationId.
   if (medicationId.isEmpty) {
     medicationId =
         reminder['medicationId']?.toString() ??
             '';
   }
-
   if (medicationId.isEmpty) {
     medicationId =
         reminder['id']?.toString() ?? '';
   }
-
   // Since the backend returns upcoming reminders
   // already sorted, the first one is the nearest.
   if (!uniqueReminders.containsKey(
@@ -73,98 +59,77 @@ for (final reminder in allReminders) {
         reminder;
   }
 }
-
 final reminders =
     uniqueReminders.values.toList();
-
       if (!mounted) return;
-
       setState(() {
         _reminders = reminders;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _error = e.toString();
         _loading = false;
       });
     }
   }
-
   String _medicationName(
     Map<String, dynamic> reminder,
   ) {
     final medication =
         reminder['medication'];
-
     if (medication is Map) {
       return medication['name']?.toString() ??
           'Medication';
     }
-
     return 'Medication';
   }
-
   String _dosage(
     Map<String, dynamic> reminder,
   ) {
     final medication =
         reminder['medication'];
-
     if (medication is Map) {
       final dosage =
           medication['dosage']?.toString() ?? '';
-
       final strength =
           medication['strength']?.toString() ?? '';
-
       if (dosage.isNotEmpty &&
           strength.isNotEmpty) {
         return '$dosage • $strength';
       }
-
       if (dosage.isNotEmpty) {
         return dosage;
       }
-
       if (strength.isNotEmpty) {
         return strength;
       }
     }
-
     return '';
   }
-
   String _formatDateTime(String? value) {
     if (value == null || value.isEmpty) {
       return '';
     }
-
     try {
       final date =
           DateTime.parse(value).toLocal();
-
       final hour = date.hour == 0
           ? 12
           : date.hour > 12
               ? date.hour - 12
               : date.hour;
-
       final minute =
           date.minute.toString().padLeft(2, '0');
-
       final period =
           date.hour >= 12 ? 'PM' : 'AM';
-
       return '${date.day}/${date.month}/${date.year} '
           'at $hour:$minute $period';
     } catch (_) {
       return value;
     }
   }
-
   Future<void> _updateStatus(
     String id,
     String status,
@@ -174,9 +139,7 @@ final reminders =
         id,
         status,
       );
-
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -186,11 +149,9 @@ final reminders =
           ),
         ),
       );
-
       await _loadReminders();
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -200,64 +161,60 @@ final reminders =
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reminders'),
+        title: Text(AppStrings.get(context, 'reminders')),
         actions: [
           IconButton(
             onPressed: _loadReminders,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
           ),
         ],
       ),
       body: _buildBody(),
     );
   }
-
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(),
       );
     }
-
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 size: 50,
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadReminders,
-                child: const Text('Retry'),
+                child: Text(AppStrings.get(context, 'retry')),
               ),
             ],
           ),
         ),
       );
     }
-
     if (_reminders.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadReminders,
         child: ListView(
           physics:
-              const AlwaysScrollableScrollPhysics(),
-          children: const [
+              AlwaysScrollableScrollPhysics(),
+          children: [
             SizedBox(height: 160),
             Icon(
               Icons.notifications_none,
@@ -266,8 +223,7 @@ final reminders =
             ),
             SizedBox(height: 16),
             Center(
-              child: Text(
-                'No upcoming reminders.',
+              child: Text(AppStrings.get(context, 'noUpcomingReminders'),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -276,47 +232,40 @@ final reminders =
             ),
             SizedBox(height: 8),
             Center(
-              child: Text(
-                'You are all caught up!',
+              child: Text(AppStrings.get(context, 'allCaughtUp'),
               ),
             ),
           ],
         ),
       );
     }
-
     return RefreshIndicator(
       onRefresh: _loadReminders,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         itemCount: _reminders.length,
         itemBuilder: (context, index) {
           final reminder =
               _reminders[index];
-
           final id =
               reminder['id']?.toString() ?? '';
-
           final status =
               reminder['status']
                       ?.toString()
                       .toUpperCase() ??
                   'PENDING';
-
           final scheduledAt =
               reminder['scheduledAt']
                   ?.toString();
-
           final dosage =
               _dosage(reminder);
-
           return Card(
-            margin: const EdgeInsets.only(
+            margin: EdgeInsets.only(
               bottom: 14,
             ),
             child: Padding(
               padding:
-                  const EdgeInsets.all(16),
+                  EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment:
                     CrossAxisAlignment.start,
@@ -329,13 +278,13 @@ final reminders =
                                 .withValues(
                           alpha: 0.10,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.medication,
                           color:
                               AppColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment:
@@ -346,7 +295,7 @@ final reminders =
                                 reminder,
                               ),
                               style:
-                                  const TextStyle(
+                                  TextStyle(
                                 fontSize: 17,
                                 fontWeight:
                                     FontWeight.bold,
@@ -355,14 +304,14 @@ final reminders =
                             if (dosage.isNotEmpty)
                               Padding(
                                 padding:
-                                    const EdgeInsets
+                                    EdgeInsets
                                         .only(
                                   top: 4,
                                 ),
                                 child: Text(
                                   dosage,
                                   style:
-                                      const TextStyle(
+                                      TextStyle(
                                     color: AppColors
                                         .textSecondary,
                                   ),
@@ -376,25 +325,23 @@ final reminders =
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 14),
-
+                  SizedBox(height: 14),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.access_time,
                         size: 20,
                         color:
                             AppColors.textSecondary,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _formatDateTime(
                             scheduledAt,
                           ),
                           style:
-                              const TextStyle(
+                              TextStyle(
                             fontWeight:
                                 FontWeight.w500,
                           ),
@@ -402,9 +349,7 @@ final reminders =
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 14),
-
+                  SizedBox(height: 14),
                   if (status == 'PENDING')
                     Row(
                       children: [
@@ -417,15 +362,14 @@ final reminders =
                                       id,
                                       'TAKEN',
                                     ),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.check,
                             ),
-                            label: const Text(
-                              'Taken',
+                            label: Text(AppStrings.get(context, 'taken'),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: id.isEmpty
@@ -435,11 +379,10 @@ final reminders =
                                       id,
                                       'SKIPPED',
                                     ),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
                             ),
-                            label: const Text(
-                              'Skip',
+                            label: Text(AppStrings.get(context, 'skip'),
                             ),
                           ),
                         ),
@@ -454,14 +397,11 @@ final reminders =
     );
   }
 }
-
 class _StatusBadge extends StatelessWidget {
   final String status;
-
-  const _StatusBadge({
+  _StatusBadge({
     required this.status,
   });
-
   Color _color() {
     switch (status) {
       case 'TAKEN':
@@ -476,13 +416,11 @@ class _StatusBadge extends StatelessWidget {
         return AppColors.textSecondary;
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final color = _color();
-
     return Container(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: 10,
         vertical: 6,
       ),
@@ -491,8 +429,7 @@ class _StatusBadge extends StatelessWidget {
         borderRadius:
             BorderRadius.circular(20),
       ),
-      child: Text(
-        status,
+      child: Text(AppStrings.get(context, status.toLowerCase()),
         style: TextStyle(
           color: color,
           fontSize: 12,

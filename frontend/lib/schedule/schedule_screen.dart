@@ -1,32 +1,25 @@
 import 'package:flutter/material.dart';
-
+import '../core/localization/app_strings.dart';
 import '../core/constants/app_colors.dart';
 import '../services/reminder_service.dart';
-
 class ScheduleScreen extends StatefulWidget {
-  const ScheduleScreen({super.key});
-
+  ScheduleScreen({super.key});
   @override
   State<ScheduleScreen> createState() => _ScheduleScreenState();
 }
-
 class _ScheduleScreenState extends State<ScheduleScreen> {
   final ReminderService _service = ReminderService();
-
   List<Map<String, dynamic>> _reminders = [];
   bool _loading = true;
   String? _error;
-
   @override
   void initState() {
     super.initState();
     _loadToday();
   }
-
   // ============================================================
   // LOAD TODAY'S SCHEDULE
   // ============================================================
-
   Future<void> _loadToday() async {
     if (mounted) {
       setState(() {
@@ -34,148 +27,113 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         _error = null;
       });
     }
-
     try {
       final reminders = await _service.getToday();
-
       // Sort by scheduled time.
       reminders.sort((a, b) {
         final aDate = DateTime.tryParse(
           a['scheduledAt']?.toString() ?? '',
         );
-
         final bDate = DateTime.tryParse(
           b['scheduledAt']?.toString() ?? '',
         );
-
         if (aDate == null && bDate == null) {
           return 0;
         }
-
         if (aDate == null) {
           return 1;
         }
-
         if (bDate == null) {
           return -1;
         }
-
         return aDate.compareTo(bDate);
       });
-
       if (!mounted) return;
-
       setState(() {
         _reminders = reminders;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _error = e.toString();
         _loading = false;
       });
     }
   }
-
   // ============================================================
   // MEDICATION NAME
   // ============================================================
-
   String _medicationName(
     Map<String, dynamic> reminder,
   ) {
     final medication = reminder['medication'];
-
     if (medication is Map) {
       final name = medication['name']?.toString();
-
       if (name != null && name.trim().isNotEmpty) {
         return name;
       }
     }
-
     final directName =
         reminder['medicationName']?.toString();
-
     if (directName != null &&
         directName.trim().isNotEmpty) {
       return directName;
     }
-
     return 'Medication';
   }
-
   // ============================================================
   // DOSAGE
   // ============================================================
-
   String _dosage(
     Map<String, dynamic> reminder,
   ) {
     final medication = reminder['medication'];
-
     if (medication is Map) {
       final dosage =
           medication['dosage']?.toString() ?? '';
-
       final strength =
           medication['strength']?.toString() ?? '';
-
       if (dosage.isNotEmpty &&
           strength.isNotEmpty) {
         return '$dosage • $strength';
       }
-
       if (dosage.isNotEmpty) {
         return dosage;
       }
-
       if (strength.isNotEmpty) {
         return strength;
       }
     }
-
     final directDosage =
         reminder['dosage']?.toString();
-
     return directDosage ?? '';
   }
-
   // ============================================================
   // TIMING TAG
   // ============================================================
-
   String _timingTag(
     Map<String, dynamic> reminder,
   ) {
     final schedule = reminder['schedule'];
-
     if (schedule is Map) {
       final tag =
           schedule['timingTag']?.toString();
-
       if (tag != null && tag.isNotEmpty) {
         return _prettyText(tag);
       }
     }
-
     final directTag =
         reminder['timingTag']?.toString();
-
     if (directTag != null &&
         directTag.isNotEmpty) {
       return _prettyText(directTag);
     }
-
     return '';
   }
-
   // ============================================================
   // FORMAT TEXT
   // ============================================================
-
   String _prettyText(String value) {
     return value
         .replaceAll('_', ' ')
@@ -188,90 +146,55 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         )
         .join(' ');
   }
-
   // ============================================================
   // FORMAT TIME
   // ============================================================
-
   String _formatTime(String? value) {
     if (value == null || value.isEmpty) {
       return '';
     }
-
     try {
       final date =
           DateTime.parse(value).toLocal();
-
       final hour = date.hour == 0
           ? 12
           : date.hour > 12
               ? date.hour - 12
               : date.hour;
-
       final minute =
           date.minute
               .toString()
               .padLeft(2, '0');
-
       final period =
           date.hour >= 12 ? 'PM' : 'AM';
-
       return '$hour:$minute $period';
     } catch (_) {
       return value;
     }
   }
-
   // ============================================================
   // STATUS COLOR
   // ============================================================
-
   Color _statusColor(String status) {
     switch (status) {
       case 'TAKEN':
         return AppColors.success;
-
       case 'SKIPPED':
         return AppColors.warning;
-
       case 'MISSED':
         return AppColors.error;
-
       case 'DELAYED':
         return Colors.orange;
-
       default:
         return AppColors.primary;
     }
   }
-
   // ============================================================
   // STATUS ICON
   // ============================================================
-
-  IconData _statusIcon(String status) {
-    switch (status) {
-      case 'TAKEN':
-        return Icons.check_circle;
-
-      case 'SKIPPED':
-        return Icons.skip_next;
-
-      case 'MISSED':
-        return Icons.error_outline;
-
-      case 'DELAYED':
-        return Icons.schedule;
-
-      default:
-        return Icons.medication;
-    }
-  }
-
   // ============================================================
   // UPDATE STATUS
   // ============================================================
-
   Future<void> _markStatus(
     String id,
     String status,
@@ -280,15 +203,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       _showMessage('Invalid reminder ID.');
       return;
     }
-
     try {
       await _service.updateStatus(
         id,
         status,
       );
-
       if (!mounted) return;
-
       _showMessage(
         status == 'TAKEN'
             ? 'Medication marked as taken.'
@@ -296,24 +216,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ? 'Medication skipped.'
                 : 'Medication marked as delayed.',
       );
-
       await _loadToday();
     } catch (e) {
       if (!mounted) return;
-
       _showMessage(
         'Could not update medication: $e',
       );
     }
   }
-
   // ============================================================
   // SNACKBAR
   // ============================================================
-
   void _showMessage(String message) {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -323,30 +238,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ),
       );
   }
-
   // ============================================================
   // BUILD
   // ============================================================
-
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-
     final dayName =
         _dayName(now.weekday);
-
     final monthName =
         _monthName(now.month);
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Schedule'),
+        title: Text(AppStrings.get(context, 'schedule')),
         actions: [
           IconButton(
             tooltip: 'Refresh',
             onPressed:
                 _loading ? null : _loadToday,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
           ),
         ],
       ),
@@ -357,63 +267,55 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
     );
   }
-
   // ============================================================
   // BODY
   // ============================================================
-
   Widget _buildBody(
     String dayName,
     String monthName,
     int day,
   ) {
     if (_loading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(),
       );
     }
-
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 size: 55,
                 color: Colors.red,
               ),
-
-              const SizedBox(height: 16),
-
+              SizedBox(height: 16),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
               ),
-
-              const SizedBox(height: 20),
-
+              SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadToday,
-                icon: const Icon(
+                icon: Icon(
                   Icons.refresh,
                 ),
-                label: const Text('Retry'),
+                label: Text(AppStrings.get(context, 'retry')),
               ),
             ],
           ),
         ),
       );
     }
-
     return RefreshIndicator(
       onRefresh: _loadToday,
       child: ListView(
         physics:
-            const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(
+            AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
           20,
           20,
           20,
@@ -423,44 +325,36 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           // ----------------------------------------------------
           // DATE HEADER
           // ----------------------------------------------------
-
           _buildDateHeader(
             dayName,
             monthName,
             day,
           ),
-
-          const SizedBox(height: 28),
-
+          SizedBox(height: 28),
           // ----------------------------------------------------
           // EMPTY STATE
           // ----------------------------------------------------
-
           if (_reminders.isEmpty)
             _buildEmptyState(),
-
           // ----------------------------------------------------
           // TIMELINE
           // ----------------------------------------------------
-
           if (_reminders.isNotEmpty)
             _buildTimeline(),
         ],
       ),
     );
   }
-
   // ============================================================
   // DATE HEADER
   // ============================================================
-
   Widget _buildDateHeader(
     String dayName,
     String monthName,
     int day,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(
           alpha: 0.08,
@@ -484,7 +378,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               children: [
                 Text(
                   day.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -493,37 +387,30 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ],
             ),
           ),
-
-          const SizedBox(width: 16),
-
+          SizedBox(width: 16),
           Column(
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Today',
+              Text(AppStrings.get(context, 'today'),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey,
                 ),
               ),
-
-              const SizedBox(height: 3),
-
+              SizedBox(height: 3),
               Text(
                 '$dayName, $monthName $day',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
-              const SizedBox(height: 3),
-
+              SizedBox(height: 3),
               Text(
                 '${_reminders.length} medication'
                 '${_reminders.length == 1 ? '' : 's'} scheduled',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey,
                 ),
@@ -534,15 +421,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
     );
   }
-
   // ============================================================
   // EMPTY STATE
   // ============================================================
-
   Widget _buildEmptyState() {
     return Padding(
       padding:
-          const EdgeInsets.only(top: 80),
+          EdgeInsets.only(top: 80),
       child: Column(
         children: [
           Icon(
@@ -553,21 +438,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               alpha: 0.5,
             ),
           ),
-
-          const SizedBox(height: 20),
-
-          const Text(
-            'No medications today',
+          SizedBox(height: 20),
+          Text(AppStrings.get(context, 'noMedicationsToday'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-
-          const SizedBox(height: 8),
-
-          const Text(
-            'Your schedule is clear for today.',
+          SizedBox(height: 8),
+          Text(AppStrings.get(context, 'scheduleClear'),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.grey,
@@ -577,11 +456,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
     );
   }
-
   // ============================================================
   // TIMELINE
   // ============================================================
-
   Widget _buildTimeline() {
     return Column(
       children: List.generate(
@@ -589,10 +466,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         (index) {
           final reminder =
               _reminders[index];
-
           final isLast =
               index == _reminders.length - 1;
-
           return _buildTimelineItem(
             reminder,
             isLast,
@@ -601,41 +476,32 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
     );
   }
-
   // ============================================================
   // TIMELINE ITEM
   // ============================================================
-
   Widget _buildTimelineItem(
     Map<String, dynamic> reminder,
     bool isLast,
   ) {
     final id =
         reminder['id']?.toString() ?? '';
-
     final status =
         reminder['status']
                 ?.toString()
                 .toUpperCase() ??
             'PENDING';
-
     final name =
         _medicationName(reminder);
-
     final dosage =
         _dosage(reminder);
-
     final timing =
         _timingTag(reminder);
-
     final time =
         _formatTime(
       reminder['scheduledAt']?.toString(),
     );
-
     final statusColor =
         _statusColor(status);
-
     return Row(
       crossAxisAlignment:
           CrossAxisAlignment.start,
@@ -643,26 +509,23 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         // ------------------------------------------------------
         // LEFT TIME COLUMN
         // ------------------------------------------------------
-
         SizedBox(
           width: 72,
           child: Padding(
             padding:
-                const EdgeInsets.only(top: 3),
+                EdgeInsets.only(top: 3),
             child: Text(
               time,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
             ),
           ),
         ),
-
         // ------------------------------------------------------
         // TIMELINE
         // ------------------------------------------------------
-
         SizedBox(
           width: 28,
           child: Column(
@@ -688,7 +551,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   ],
                 ),
               ),
-
               if (!isLast)
                 Container(
                   width: 2,
@@ -702,17 +564,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ],
           ),
         ),
-
-        const SizedBox(width: 12),
-
+        SizedBox(width: 12),
         // ------------------------------------------------------
         // MEDICATION CARD
         // ------------------------------------------------------
-
         Expanded(
           child: Padding(
             padding:
-                const EdgeInsets.only(
+                EdgeInsets.only(
               bottom: 18,
             ),
             child: _buildMedicationCard(
@@ -729,11 +588,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ],
     );
   }
-
   // ============================================================
   // MEDICATION CARD
   // ============================================================
-
   Widget _buildMedicationCard({
     required Map<String, dynamic> reminder,
     required String id,
@@ -745,9 +602,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }) {
     final isPending =
         status == 'PENDING';
-
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: status == 'TAKEN'
             ? AppColors.success.withValues(
@@ -772,7 +628,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           // ----------------------------------------------------
           // NAME + STATUS
           // ----------------------------------------------------
-
           Row(
             crossAxisAlignment:
                 CrossAxisAlignment.start,
@@ -780,28 +635,23 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               Expanded(
                 child: Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-
-              const SizedBox(width: 8),
-
+              SizedBox(width: 8),
               _StatusBadge(
                 status: status,
               ),
             ],
           ),
-
           // ----------------------------------------------------
           // DOSAGE
           // ----------------------------------------------------
-
           if (dosage.isNotEmpty) ...[
-            const SizedBox(height: 7),
-
+            SizedBox(height: 7),
             Row(
               children: [
                 Icon(
@@ -810,13 +660,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   color:
                       AppColors.textSecondary,
                 ),
-
-                const SizedBox(width: 6),
-
+                SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     dosage,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.grey,
                     ),
                   ),
@@ -824,14 +672,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ],
             ),
           ],
-
           // ----------------------------------------------------
           // TIMING
           // ----------------------------------------------------
-
           if (timing.isNotEmpty) ...[
-            const SizedBox(height: 6),
-
+            SizedBox(height: 6),
             Row(
               children: [
                 Icon(
@@ -840,26 +685,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   color:
                       AppColors.textSecondary,
                 ),
-
-                const SizedBox(width: 6),
-
+                SizedBox(width: 6),
                 Text(
                   timing,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.grey,
                   ),
                 ),
               ],
             ),
           ],
-
           // ----------------------------------------------------
           // ACTIONS
           // ----------------------------------------------------
-
           if (isPending) ...[
-            const SizedBox(height: 14),
-
+            SizedBox(height: 14),
             Row(
               children: [
                 Expanded(
@@ -871,17 +711,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               id,
                               'TAKEN',
                             ),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.check,
                       size: 18,
                     ),
                     label:
-                        const Text('Taken'),
+                        Text(AppStrings.get(context, 'taken')),
                   ),
                 ),
-
-                const SizedBox(width: 8),
-
+                SizedBox(width: 8),
                 SizedBox(
                   width: 48,
                   height: 42,
@@ -893,7 +731,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               id,
                               'SKIPPED',
                             ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close,
                       size: 19,
                     ),
@@ -906,13 +744,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
     );
   }
-
   // ============================================================
   // DAY NAME
   // ============================================================
-
   String _dayName(int weekday) {
-    const days = [
+    final days = [
       'Monday',
       'Tuesday',
       'Wednesday',
@@ -921,16 +757,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       'Saturday',
       'Sunday',
     ];
-
     return days[weekday - 1];
   }
-
   // ============================================================
   // MONTH NAME
   // ============================================================
-
   String _monthName(int month) {
-    const months = [
+    final months = [
       'January',
       'February',
       'March',
@@ -944,67 +777,51 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       'November',
       'December',
     ];
-
     return months[month - 1];
   }
 }
-
 // ================================================================
 // STATUS BADGE
 // ================================================================
-
 class _StatusBadge extends StatelessWidget {
   final String status;
-
-  const _StatusBadge({
+  _StatusBadge({
     required this.status,
   });
-
   Color _color() {
     switch (status) {
       case 'TAKEN':
         return AppColors.success;
-
       case 'SKIPPED':
         return AppColors.warning;
-
       case 'MISSED':
         return AppColors.error;
-
       case 'DELAYED':
         return Colors.orange;
-
       default:
         return AppColors.primary;
     }
   }
-
   IconData _icon() {
     switch (status) {
       case 'TAKEN':
         return Icons.check;
-
       case 'SKIPPED':
         return Icons.close;
-
       case 'MISSED':
         return Icons.warning_amber;
-
       case 'DELAYED':
         return Icons.schedule;
-
       default:
         return Icons.access_time;
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final color = _color();
-
     return Container(
       padding:
-          const EdgeInsets.symmetric(
+          EdgeInsets.symmetric(
         horizontal: 9,
         vertical: 5,
       ),
@@ -1024,11 +841,8 @@ class _StatusBadge extends StatelessWidget {
             size: 13,
             color: color,
           ),
-
-          const SizedBox(width: 4),
-
-          Text(
-            status,
+          SizedBox(width: 4),
+          Text(AppStrings.get(context, status.toLowerCase()),
             style: TextStyle(
               color: color,
               fontSize: 10,

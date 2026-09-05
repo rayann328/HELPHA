@@ -1,55 +1,40 @@
 import 'package:flutter/material.dart';
-
+import '../core/localization/app_strings.dart';
 import '../services/medication_service.dart';
 import '../services/schedule_service.dart';
-
 class AddMedicationScreen extends StatefulWidget {
   const AddMedicationScreen({super.key});
-
   @override
   State<AddMedicationScreen> createState() =>
       _AddMedicationScreenState();
 }
-
 class _AddMedicationScreenState
     extends State<AddMedicationScreen> {
   final _formKey =
       GlobalKey<FormState>();
-
   final _nameController =
       TextEditingController();
-
   final _dosageController =
       TextEditingController();
-
   final _notesController =
       TextEditingController();
-
   final MedicationService
       _medicationService =
       MedicationService();
-
   final ScheduleService
       _scheduleService =
       ScheduleService();
-
   String _type = 'Tablet';
-
   String _frequency = 'Daily';
-
   TimeOfDay _selectedTime =
-      const TimeOfDay(
+      TimeOfDay(
     hour: 8,
     minute: 0,
   );
-
   DateTime _startDate =
       DateTime.now();
-
   DateTime? _endDate;
-
   bool _loading = false;
-
   final List<String> _types = [
     'Tablet',
     'Capsule',
@@ -57,14 +42,12 @@ class _AddMedicationScreenState
     'Injection',
     'Other',
   ];
-
   final List<String> _frequencies = [
     'Daily',
     'Weekly',
     'Monthly',
     'One-time',
   ];
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -72,67 +55,52 @@ class _AddMedicationScreenState
     _notesController.dispose();
     super.dispose();
   }
-
   String _scheduleType() {
     switch (_frequency) {
       case 'Weekly':
         return 'WEEKLY';
-
       case 'Monthly':
         return 'MONTHLY';
-
       case 'One-time':
         return 'ONE_TIME';
-
       case 'Daily':
       default:
         return 'DAILY';
     }
   }
-
   String _formatTimeForBackend(
     TimeOfDay time,
   ) {
     final hour =
         time.hour.toString().padLeft(2, '0');
-
     final minute =
         time.minute.toString().padLeft(2, '0');
-
     return '$hour:$minute';
   }
-
   String _formatDate(
     DateTime date,
   ) {
     final year =
         date.year.toString().padLeft(4, '0');
-
     final month =
         date.month.toString().padLeft(2, '0');
-
     final day =
         date.day.toString().padLeft(2, '0');
-
     return '$year-$month-$day';
   }
-
   Future<void> _pickTime() async {
     final selected =
         await showTimePicker(
       context: context,
       initialTime: _selectedTime,
     );
-
     if (selected == null) {
       return;
     }
-
     setState(() {
       _selectedTime = selected;
     });
   }
-
   Future<void> _pickStartDate() async {
     final selected =
         await showDatePicker(
@@ -140,25 +108,21 @@ class _AddMedicationScreenState
       initialDate: _startDate,
       firstDate: DateTime.now()
           .subtract(
-        const Duration(days: 3650),
+        Duration(days: 3650),
       ),
       lastDate: DateTime(2100),
     );
-
     if (selected == null) {
       return;
     }
-
     setState(() {
       _startDate = selected;
-
       if (_endDate != null &&
           _endDate!.isBefore(selected)) {
         _endDate = null;
       }
     });
   }
-
   Future<void> _pickEndDate() async {
     final selected =
         await showDatePicker(
@@ -168,26 +132,21 @@ class _AddMedicationScreenState
       firstDate: _startDate,
       lastDate: DateTime(2100),
     );
-
     if (selected == null) {
       return;
     }
-
     setState(() {
       _endDate = selected;
     });
   }
-
   Future<void> _save() async {
     if (!_formKey.currentState!
         .validate()) {
       return;
     }
-
     setState(() {
       _loading = true;
     });
-
     try {
       // STEP 1:
       // Create the medication.
@@ -199,7 +158,6 @@ class _AddMedicationScreenState
         type: _type,
         notes: _notesController.text,
       );
-
       // STEP 2:
       // Create the schedule for that medication.
       await _scheduleService
@@ -217,20 +175,17 @@ class _AddMedicationScreenState
           _selectedTime,
         ),
       );
-
       if (!mounted) {
         return;
       }
-
       ScaffoldMessenger.of(context)
           .showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             'Medication and schedule added successfully',
           ),
         ),
       );
-
       Navigator.pop(
         context,
         medication,
@@ -239,11 +194,9 @@ class _AddMedicationScreenState
       if (!mounted) {
         return;
       }
-
       setState(() {
         _loading = false;
       });
-
       ScaffoldMessenger.of(context)
           .showSnackBar(
         SnackBar(
@@ -254,30 +207,27 @@ class _AddMedicationScreenState
       );
     }
   }
-
   @override
   Widget build(
     BuildContext context,
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Medication',
+        title: Text(AppStrings.get(context, 'addMedication'),
         ),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding:
-              const EdgeInsets.all(20),
+              EdgeInsets.all(20),
           children: [
             TextFormField(
               controller:
                   _nameController,
               decoration:
-                  const InputDecoration(
-                labelText:
-                    'Medication name',
+                  InputDecoration(
+                labelText: AppStrings.get(context, 'medicationName'),
                 prefixIcon:
                     Icon(
                   Icons.medication,
@@ -288,36 +238,31 @@ class _AddMedicationScreenState
                     value.trim().isEmpty) {
                   return 'Please enter medication name';
                 }
-
                 return null;
               },
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 16,
             ),
-
             TextFormField(
               controller:
                   _dosageController,
               decoration:
-                  const InputDecoration(
-                labelText: 'Dosage',
+                  InputDecoration(
+                labelText: AppStrings.get(context, 'dosage'),
                 hintText:
                     'e.g. 500 mg',
               ),
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 16,
             ),
-
             DropdownButtonFormField<
                 String>(
               initialValue: _type,
               decoration:
-                  const InputDecoration(
-                labelText: 'Type',
+                  InputDecoration(
+                labelText: AppStrings.get(context, 'type'),
               ),
               items: _types
                   .map(
@@ -343,20 +288,17 @@ class _AddMedicationScreenState
                           }
                         },
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 16,
             ),
-
             // FREQUENCY
             DropdownButtonFormField<
                 String>(
               initialValue:
                   _frequency,
               decoration:
-                  const InputDecoration(
-                labelText:
-                    'Frequency',
+                  InputDecoration(
+                labelText: AppStrings.get(context, 'frequency'),
               ),
               items: _frequencies
                   .map(
@@ -385,21 +327,18 @@ class _AddMedicationScreenState
                           }
                         },
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 16,
             ),
-
             // TIME
             Card(
               child: ListTile(
                 leading:
-                    const Icon(
+                    Icon(
                   Icons.access_time,
                 ),
                 title:
-                    const Text(
-                  'Medication time',
+                    Text(AppStrings.get(context, 'medicationTime'),
                 ),
                 subtitle:
                     Text(
@@ -409,7 +348,7 @@ class _AddMedicationScreenState
                   ),
                 ),
                 trailing:
-                    const Icon(
+                    Icon(
                   Icons.chevron_right,
                 ),
                 onTap:
@@ -418,21 +357,18 @@ class _AddMedicationScreenState
                         : _pickTime,
               ),
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 8,
             ),
-
             // START DATE
             Card(
               child: ListTile(
                 leading:
-                    const Icon(
+                    Icon(
                   Icons.calendar_today,
                 ),
                 title:
-                    const Text(
-                  'Start date',
+                    Text(AppStrings.get(context, 'startDate'),
                 ),
                 subtitle:
                     Text(
@@ -441,7 +377,7 @@ class _AddMedicationScreenState
                   ),
                 ),
                 trailing:
-                    const Icon(
+                    Icon(
                   Icons.chevron_right,
                 ),
                 onTap:
@@ -450,21 +386,18 @@ class _AddMedicationScreenState
                         : _pickStartDate,
               ),
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 8,
             ),
-
             // END DATE
             Card(
               child: ListTile(
                 leading:
-                    const Icon(
+                    Icon(
                   Icons.event,
                 ),
                 title:
-                    const Text(
-                  'End date',
+                    Text(AppStrings.get(context, 'endDate'),
                 ),
                 subtitle:
                     Text(
@@ -476,13 +409,13 @@ class _AddMedicationScreenState
                 ),
                 trailing:
                     _endDate == null
-                        ? const Icon(
+                        ? Icon(
                             Icons
                                 .chevron_right,
                           )
                         : IconButton(
                             icon:
-                                const Icon(
+                                Icon(
                               Icons.clear,
                             ),
                             onPressed:
@@ -503,27 +436,22 @@ class _AddMedicationScreenState
                         : _pickEndDate,
               ),
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 16,
             ),
-
             TextFormField(
               controller:
                   _notesController,
               maxLines: 4,
               decoration:
-                  const InputDecoration(
-                labelText: 'Notes',
-                hintText:
-                    'Additional instructions...',
+                  InputDecoration(
+                labelText: AppStrings.get(context, 'notes'),
+                hintText: AppStrings.get(context, 'additionalInstructions'),
               ),
             ),
-
-            const SizedBox(
+            SizedBox(
               height: 28,
             ),
-
             SizedBox(
               height: 52,
               child:
@@ -533,7 +461,7 @@ class _AddMedicationScreenState
                         ? null
                         : _save,
                 child: _loading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 24,
                         height: 24,
                         child:
@@ -542,8 +470,7 @@ class _AddMedicationScreenState
                               2,
                         ),
                       )
-                    : const Text(
-                        'Save Medication',
+                    : Text(AppStrings.get(context, 'saveMedication'),
                       ),
               ),
             ),

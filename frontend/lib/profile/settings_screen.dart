@@ -1,121 +1,95 @@
 import 'package:flutter/material.dart';
-
 import '../core/app_settings.dart';
 import '../core/localization/app_strings.dart';
 import '../services/settings_service.dart';
-
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
-
   @override
   State<SettingsScreen> createState() =>
       _SettingsScreenState();
 }
-
 class _SettingsScreenState
     extends State<SettingsScreen> {
   final SettingsService _service =
       SettingsService();
-
   bool _darkMode = false;
   bool _medicationReminders = true;
   String _language = 'en';
-
   bool _loading = true;
-
   @override
   void initState() {
     super.initState();
     _loadSettings();
   }
-
   Future<void> _loadSettings() async {
     try {
       final settings =
           await _service.getSettings();
-
       if (!mounted) return;
-
       final darkMode =
           settings['darkMode'] ?? false;
-
       final language =
           settings['language']?.toString() ?? 'en';
-
       final reminders =
           settings['medicationReminders'] ?? true;
-
       setState(() {
         _darkMode = darkMode == true;
         _language = language;
         _medicationReminders = reminders == true;
         _loading = false;
       });
-
       AppSettings.setDarkMode(
         _darkMode,
       );
-
       AppSettings.locale.value =
           _language == 'ar'
-              ? const Locale('ar')
-              : const Locale('en');
-
+              ? Locale('ar')
+              : Locale('en');
       AppSettings.medicationReminders =
           _medicationReminders;
     } catch (_) {
       if (!mounted) return;
-
       setState(() {
         _loading = false;
       });
     }
   }
-
   Future<void> _setDarkMode(
     bool value,
   ) async {
     setState(() {
       _darkMode = value;
     });
-
     AppSettings.setDarkMode(value);
-
     try {
       await _service.updateSettings(
         darkMode: value,
       );
     } catch (_) {
       if (!mounted) return;
-
       setState(() {
         _darkMode = !value;
       });
-
       AppSettings.setDarkMode(!value);
     }
   }
-
   Future<void> _setLanguage(
     String value,
   ) async {
     setState(() {
       _language = value;
     });
-
     // Change app language immediately.
     AppSettings.locale.value =
         value == 'ar'
-            ? const Locale('ar')
-            : const Locale('en');
-
+            ? Locale('ar')
+            : Locale('en');
     try {
       await _service.updateSettings(
         language: value,
       );
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -123,31 +97,25 @@ class _SettingsScreenState
       );
     }
   }
-
   Future<void> _setMedicationReminders(
     bool value,
   ) async {
     setState(() {
       _medicationReminders = value;
     });
-
     AppSettings.medicationReminders =
         value;
-
     try {
       await _service.updateSettings(
         medicationReminders: value,
       );
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _medicationReminders = !value;
       });
-
       AppSettings.medicationReminders =
           !value;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -155,11 +123,9 @@ class _SettingsScreenState
       );
     }
   }
-
   void _showAbout() {
     final arabic =
         AppStrings.isArabic(context);
-
     showAboutDialog(
       context: context,
       applicationName: 'HELPHA',
@@ -169,17 +135,15 @@ class _SettingsScreenState
           : 'Medication and health management application',
     );
   }
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
         ),
       );
     }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -189,14 +153,12 @@ class _SettingsScreenState
           ),
         ),
       ),
-
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         children: [
           // ----------------------------------------------------
           // DARK MODE
           // ----------------------------------------------------
-
           Card(
             child: SwitchListTile(
               title: Text(
@@ -215,11 +177,9 @@ class _SettingsScreenState
               onChanged: _setDarkMode,
             ),
           ),
-
           // ----------------------------------------------------
           // MEDICATION REMINDERS
           // ----------------------------------------------------
-
           Card(
             child: SwitchListTile(
               title: Text(
@@ -239,11 +199,9 @@ class _SettingsScreenState
                   _setMedicationReminders,
             ),
           ),
-
           // ----------------------------------------------------
           // LANGUAGE
           // ----------------------------------------------------
-
           Card(
             child: ListTile(
               title: Text(
@@ -252,7 +210,6 @@ class _SettingsScreenState
                   'language',
                 ),
               ),
-
               subtitle: Text(
                 _language == 'ar'
                     ? AppStrings.get(
@@ -264,11 +221,9 @@ class _SettingsScreenState
                         'english',
                       ),
               ),
-
               trailing:
                   DropdownButton<String>(
                 value: _language,
-
                 items: [
                   DropdownMenuItem(
                     value: 'en',
@@ -289,7 +244,6 @@ class _SettingsScreenState
                     ),
                   ),
                 ],
-
                 onChanged: (value) {
                   if (value != null) {
                     _setLanguage(value);
@@ -298,32 +252,26 @@ class _SettingsScreenState
               ),
             ),
           ),
-
-          const SizedBox(height: 16),
-
+          SizedBox(height: 16),
           // ----------------------------------------------------
           // ABOUT
           // ----------------------------------------------------
-
           Card(
             child: ListTile(
               leading:
-                  const Icon(
+                  Icon(
                 Icons.info_outline,
               ),
-
               title: Text(
                 AppStrings.get(
                   context,
                   'aboutHelpha',
                 ),
               ),
-
               trailing:
-                  const Icon(
+                  Icon(
                 Icons.chevron_right,
               ),
-
               onTap: _showAbout,
             ),
           ),

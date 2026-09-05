@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'core/app_settings.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/splash/splash_screen.dart';
@@ -18,28 +17,20 @@ class HelphaApp extends StatelessWidget {
           builder: (context, locale, _) {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
-
               title: 'HELPHA',
-
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
-
               locale: locale,
-
-              // Arabic + English
               supportedLocales: const [
                 Locale('en'),
                 Locale('ar'),
               ],
-
-              // Flutter's built-in Arabic/English Material support
               localizationsDelegates: const [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-
               home: const SplashScreen(),
             );
           },
